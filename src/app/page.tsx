@@ -1,113 +1,151 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import React, { useState, ChangeEvent } from "react";
+import TaskManager from "./TaskManager";
+import Timer from "./Timer";
+import { Subtask, Task } from "./types"; // Define this type in a separate file or inline
+
+const App: React.FC = () => {
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [taskInput, setTaskInput] = useState<string>("");
+  const [subtaskInput, setSubtaskInput] = useState<string>("");
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [selectedSubtask, setSelectedSubtask] = useState<Subtask | null>(null);
+  const [isTimerVisible, setIsTimerVisible] = useState<boolean>(false);
+
+  // Function to add a new task
+  const addTask = () => {
+    if (taskInput.trim() === "") return;
+
+    setTasks((prevTasks) => [
+      ...prevTasks,
+      { id: Date.now(), name: taskInput, subtasks: [] },
+    ]);
+    setTaskInput("");
+  };
+
+  // Function to delete a task
+  const handleDeleteTask = (
+    event: React.MouseEvent<HTMLButtonElement, MouseEvent>,
+    taskId: number
+  ) => {
+    event.stopPropagation();
+    setTasks((prevTasks) => prevTasks.filter((task) => task.id !== taskId));
+  };
+
+  // Function to handle task selection
+  const handleSelectTask = (taskId: number) => {
+    setSelectedTask(tasks.find((task) => task.id === taskId) || null);
+    if (selectedTask != null) {
+      setIsTimerVisible(true);
+    }
+  };
+
+  // Handle input changes
+  const handleTaskInputChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setTaskInput(e.target.value);
+  };
+
+  // Function to add a subtask to a selected task
+  const addSubtask = (taskId: number) => {
+    if (subtaskInput.trim() === "") return;
+
+    setTasks((prevTasks) =>
+      prevTasks.map((task) =>
+        task.id === taskId
+          ? {
+              ...task,
+              subtasks: [
+                ...task.subtasks,
+                { id: Date.now(), name: subtaskInput, taskId }, // Add unique id for the subtask
+              ],
+            }
+          : task
+      )
+    );
+    setSubtaskInput(""); // Clear the subtask input
+  };
+
+  // Function to delete a subtask
+  const handleDeleteSubtask = (
+    event: React.MouseEvent<HTMLButtonElement, MouseEvent>,
+    taskId: number,
+    subTaskId: number
+  ) => {
+    event?.stopPropagation();
+    setTasks((prevTasks) =>
+      prevTasks.map((task) =>
+        task.id === taskId
+          ? {
+              ...task,
+              subtasks: task.subtasks.filter(
+                (subtask) => subtask.id !== subTaskId
+              ),
+            }
+          : task
+      )
+    );
+  };
+
+  const handleSelectSubtask = (taskId: number, subTaskId: number) => {
+    // Find the task based on taskId
+    const selectedTask = tasks.find((task) => task.id === taskId) || null;
+
+    // If a valid task is found, find the specific subtask
+    const selectedSubtask = selectedTask
+      ? selectedTask.subtasks.find((subtask) => subtask.id === subTaskId) ||
+        null
+      : null;
+
+    // Update state with selected task and subtask
+    setSelectedTask(selectedTask);
+    setSelectedSubtask(selectedSubtask);
+
+    // Show the timer (if needed)
+    if (selectedSubtask != null) {
+      setIsTimerVisible(true);
+    }
+  };
+
+  const handleSubtaskInputChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setSubtaskInput(e.target.value);
+  };
+
+  // Function to hide the timer
+  const handleHideTimer = () => {
+    setIsTimerVisible(false);
+    setSelectedTask(null);
+  };
+
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className="z-10 w-full max-w-5xl items-center justify-between font-mono text-sm lg:flex">
-        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto  lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
-          Get started by editing&nbsp;
-          <code className="font-mono font-bold">src/app/page.tsx</code>
-        </p>
-        <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:size-auto lg:bg-none">
-          <a
-            className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{" "}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className="dark:invert"
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
-        </div>
-      </div>
-
-      <div className="relative z-[-1] flex place-items-center before:absolute before:h-[300px] before:w-full before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-full after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700 before:dark:opacity-10 after:dark:from-sky-900 after:dark:via-[#0141ff] after:dark:opacity-40 sm:before:w-[480px] sm:after:w-[240px] before:lg:h-[360px]">
-        <Image
-          className="relative dark:drop-shadow-[0_0_0.3rem_#ffffff70] dark:invert"
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
+    <div className="container mx-auto p-4">
+      <h1 className="text-2xl font-bold mb-4">PomoCrafts</h1>
+      <div className="flex flex-col space-y-4">
+        {isTimerVisible && selectedTask !== null && (
+          <Timer
+            selectedTask={selectedTask}
+            selectedSubtask={selectedSubtask}
+            onHide={handleHideTimer}
+          />
+        )}
+        <TaskManager
+          tasks={tasks}
+          taskInput={taskInput}
+          subtaskInput={subtaskInput}
+          selectedTask={selectedTask}
+          selectedSubtask={selectedSubtask}
+          addTask={addTask}
+          addSubtask={addSubtask}
+          handleTaskInputChange={handleTaskInputChange}
+          handleSubtaskInputChange={handleSubtaskInputChange}
+          handleSelectTask={handleSelectTask}
+          handleDeleteTask={handleDeleteTask}
+          handleSelectSubtask={handleSelectSubtask}
+          handleDeleteSubtask={handleDeleteSubtask}
         />
       </div>
-
-      <div className="mb-32 grid text-center lg:mb-0 lg:w-full lg:max-w-5xl lg:grid-cols-4 lg:text-left">
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Docs{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Find in-depth information about Next.js features and API.
-          </p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Learn{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Learn about Next.js in an interactive course with&nbsp;quizzes!
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Templates{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Explore starter templates for Next.js.
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Deploy{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-balance text-sm opacity-50">
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
-    </main>
+    </div>
   );
-}
+};
+
+export default App;
