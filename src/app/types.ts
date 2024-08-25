@@ -4,6 +4,7 @@ export interface Task {
   pomodoros: number;
   completedPomodoros: number;
   subtasks: Subtask[];
+  note: string;
 }
 
 export interface Subtask {
@@ -12,4 +13,5 @@ export interface Subtask {
   pomodoros: number;
   completedPomodoros: number;
   name: string;
+  note: string;
 }

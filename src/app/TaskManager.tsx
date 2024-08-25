@@ -47,6 +47,12 @@ interface TaskManagerProps {
     subtaskId: number
   ) => void;
   startTimer: () => void;
+  isEditingTask: number;
+  setIsEditingTask: React.Dispatch<React.SetStateAction<number>>;
+  handleTaskEditing: (note: string) => void;
+  isEditingSubtask: number;
+  setIsEditingSubtask: React.Dispatch<React.SetStateAction<number>>;
+  handleSubtaskEditing: (note: string) => void;
 }
 
 const TaskManager: React.FC<TaskManagerProps> = ({
@@ -68,18 +74,42 @@ const TaskManager: React.FC<TaskManagerProps> = ({
   handleSelectSubtask,
   handleDeleteSubtask,
   startTimer,
+  isEditingTask,
+  setIsEditingTask,
+  handleTaskEditing,
+  isEditingSubtask,
+  setIsEditingSubtask,
+  handleSubtaskEditing,
 }) => {
   // Reference for the subtask input field
   const subtaskInputRef = useRef<HTMLInputElement | null>(null);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const newTaskTextareaRef = useRef<HTMLTextAreaElement>(null);
   const [isTaskInputExpanded, setIsTaskInputExpanded] =
     useState<Boolean>(false);
+  const [taskNameInput, setTaskNameInput] = useState<string>("");
+  const [subtaskNameInput, setSubtaskNameInput] = useState<string>("");
 
   // Function to handle Enter key press
   const handleAddTaskKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
     if (event.key === "Enter" && !event.shiftKey) {
       event.preventDefault(); // Prevent the default form submission behavior
       addTask(); // Call your addTask function
+    }
+  };
+
+  const handleEditTaskKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (event.key === "Enter" && !event.shiftKey) {
+      event.preventDefault(); // Prevent the default form submission behavior
+      handleTaskEditing(taskNameInput);
+    }
+  };
+
+  const handleEditSubtaskKeyDown = (
+    event: KeyboardEvent<HTMLTextAreaElement>
+  ) => {
+    if (event.key === "Enter" && !event.shiftKey) {
+      event.preventDefault(); // Prevent the default form submission behavior
+      handleSubtaskEditing(subtaskNameInput);
     }
   };
 
@@ -114,7 +144,7 @@ const TaskManager: React.FC<TaskManagerProps> = ({
       <div className="flex mb-4">
         <div className="w-full relative mr-2">
           <textarea
-            ref={textareaRef}
+            ref={newTaskTextareaRef}
             rows={isTaskInputExpanded ? 5 : 3}
             className="borde w-full h-full border-gray-300 rounded-lg p-3 flex-grow resize-none h-24 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="Enter a new task..."
@@ -162,9 +192,38 @@ const TaskManager: React.FC<TaskManagerProps> = ({
                     : "hover:bg-gray-100 hover:shadow-lg"
                 }`}
               onClick={() => handleSelectTask(task.id)}
+              onDoubleClick={(e) => {
+                e.stopPropagation();
+                setIsEditingTask(task.id);
+                setTaskNameInput(task.name);
+                setTimeout(() => {
+                  const inputElement = document.getElementById(
+                    `task-input-${task.id}`
+                  ) as HTMLInputElement | null;
+                  if (inputElement) {
+                    inputElement.focus();
+                    inputElement.setSelectionRange(
+                      task.name.length,
+                      task.name.length
+                    );
+                  }
+                }, 0);
+              }}
+              onBlur={() => setIsEditingTask(0)}
             >
               <div className="flex items-center space-x-4">
-                <span className="text-lg font-medium">{task.name}</span>
+                {isEditingTask === task.id ? (
+                  <textarea
+                    id={`task-input-${task.id}`}
+                    rows={1}
+                    className="borde w-full h-full border-gray-300 rounded-lg p-3 flex-grow resize-none h-24 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    value={taskNameInput}
+                    onChange={(e) => setTaskNameInput(e.target.value)}
+                    onKeyDown={handleEditTaskKeyDown}
+                  />
+                ) : (
+                  <span className="text-lg font-medium">{task.name}</span>
+                )}
                 {task.subtasks.length === 0 ? (
                   <PomodorosRating
                     value={task.pomodoros}
@@ -243,9 +302,43 @@ const TaskManager: React.FC<TaskManagerProps> = ({
                         } 
                         `}
                       onClick={() => handleSelectSubtask(task.id, subtask.id)}
+                      onDoubleClick={(e) => {
+                        e.stopPropagation();
+                        setIsEditingSubtask(subtask.id);
+                        setSubtaskNameInput(subtask.name);
+                        setTimeout(() => {
+                          const inputElement = document.getElementById(
+                            `subtask-input-${subtask.id}`
+                          ) as HTMLInputElement | null;
+
+                          if (inputElement) {
+                            inputElement.focus();
+                            inputElement.setSelectionRange(
+                              task.name.length,
+                              task.name.length
+                            );
+                          }
+                        }, 0);
+                      }}
+                      onBlur={() => setIsEditingSubtask(0)}
                     >
                       <div className="flex items-center space-x-4">
-                        <span className="text-gray-800">{subtask.name}</span>
+                        {isEditingSubtask === subtask.id ? (
+                          <textarea
+                            id={`subtask-input-${subtask.id}`}
+                            rows={1}
+                            className="borde w-full h-full border-gray-300 rounded-lg p-3 flex-grow resize-none h-24 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            value={subtaskNameInput}
+                            onChange={(e) =>
+                              setSubtaskNameInput(e.target.value)
+                            }
+                            onKeyDown={handleEditSubtaskKeyDown}
+                          />
+                        ) : (
+                          <span className="text-lg font-medium">
+                            {subtask.name}
+                          </span>
+                        )}
                         <div className="flex items-center space-x-1">
                           <PomodorosRating
                             value={subtask.pomodoros}

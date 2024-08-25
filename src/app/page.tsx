@@ -5,10 +5,13 @@ import TaskManager from "./TaskManager";
 import Timer from "./Timer";
 import { Subtask, Task } from "./types"; // Define this type in a separate file or inline
 import TabController from "./TabController";
+import RecordManager from "./RecordManager";
 
 const App: React.FC = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [taskInput, setTaskInput] = useState<string>("");
+  const [isEditingTask, setIsEditingTask] = useState<number>(0);
+  const [isEditingSubtask, setIsEditingSubtask] = useState<number>(0);
   const [pomodoros, setPomodoros] = useState<number>(1);
   const [subtaskInput, setSubtaskInput] = useState<string>("");
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
@@ -30,6 +33,7 @@ const App: React.FC = () => {
       pomodoros,
       completedPomodoros: 0,
       subtasks: [],
+      note: "",
     };
 
     // Split the input into lines
@@ -47,6 +51,7 @@ const App: React.FC = () => {
         name: line.trim().slice(1).trim(), // Remove the bullet point and any leading/trailing whitespace
         pomodoros: 1,
         completedPomodoros: 0,
+        note: "",
       }));
 
     task.subtasks = subtasks;
@@ -55,6 +60,7 @@ const App: React.FC = () => {
     setTaskInput("");
     setSelectedTask(task);
     if (task.subtasks.length != 0) {
+      task.pomodoros = 0;
       setSelectedSubtask(task.subtasks[0]);
     }
   };
@@ -142,6 +148,8 @@ const App: React.FC = () => {
         if (task.id === taskId) {
           if (task.subtasks.length != 0) {
             setSelectedSubtask(task.subtasks[0]);
+          } else {
+            setSelectedSubtask(null);
           }
           return true;
         }
@@ -172,6 +180,7 @@ const App: React.FC = () => {
                   taskId,
                   pomodoros: 1,
                   completedPomodoros: 0,
+                  note: "",
                 }, // Add unique id for the subtask
               ],
             }
@@ -291,6 +300,36 @@ const App: React.FC = () => {
     setIsTimerRunning(true);
   };
 
+  const handleTaskEditing = (name: string) => {
+    setTasks((prev) =>
+      prev.map((task) => {
+        if (task.id === isEditingTask) {
+          return { ...task, name };
+        }
+        return task;
+      })
+    );
+    setIsEditingTask(0);
+  };
+
+  const handleSubtaskEditing = (name: string) => {
+    setTasks((prev) =>
+      prev.map((task) => {
+        // Map over subtasks and update the specific subtask
+        const updatedSubtasks = task.subtasks.map((subtask) => {
+          if (subtask.id === isEditingSubtask) {
+            return { ...subtask, name };
+          }
+          return subtask;
+        });
+
+        // Return the task with updated subtasks
+        return { ...task, subtasks: updatedSubtasks };
+      })
+    );
+    setIsEditingSubtask(0); // Reset the editing state
+  };
+
   return (
     <div className="min-h-screen flex flex-col overflow-y-auto">
       {/* Header */}
@@ -331,6 +370,12 @@ const App: React.FC = () => {
               handleSelectSubtask={handleSelectSubtask}
               handleDeleteSubtask={handleDeleteSubtask}
               startTimer={startTimer}
+              isEditingTask={isEditingTask}
+              setIsEditingTask={setIsEditingTask}
+              handleTaskEditing={handleTaskEditing}
+              isEditingSubtask={isEditingSubtask}
+              setIsEditingSubtask={setIsEditingSubtask}
+              handleSubtaskEditing={handleSubtaskEditing}
             />
           )}
           {activeTab === "Timer" && (
@@ -346,11 +391,7 @@ const App: React.FC = () => {
             />
           )}
           {activeTab === "Record" && (
-            <div className="bg-white p-6 rounded-lg shadow-md">
-              <h2 className="text-xl font-bold mb-4">Record</h2>
-              {/* Placeholder for Record content */}
-              <p className="text-gray-700">Record content goes here...</p>
-            </div>
+            <RecordManager tasks={tasks}></RecordManager>
           )}
         </div>
       </main>
