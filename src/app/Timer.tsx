@@ -1,27 +1,17 @@
 import { useState, useEffect, useCallback } from "react";
-import { randomUUID } from "crypto";
 import ticking from "./ticking";
 import { Subtask, Task } from "./types";
-
-interface Session {
-  id: string;
-}
+import { FaClock, FaRegClock } from "react-icons/fa";
 
 interface TimerProps {
-  selectedTask: Task;
+  selectedTask: Task | null;
   selectedSubtask: Subtask | null;
-  onHide: () => void;
 }
 
-export default function Timer({
-  selectedTask,
-  selectedSubtask,
-  onHide,
-}: TimerProps) {
+export default function Timer({ selectedTask, selectedSubtask }: TimerProps) {
   const [seconds, setSeconds] = useState(0);
   const [isRunning, setIsRunning] = useState(false);
-  const [session, setSession] = useState<Session[]>([]);
-  const intervalDuration = 70;
+  const intervalDuration = 1;
 
   const pomodoroSound = new Audio(ticking);
   pomodoroSound.loop = true;
@@ -42,10 +32,6 @@ export default function Timer({
           if (!intervalCleared) {
             clearInterval(interval);
             setIsRunning(false);
-            setSession((prevSession) => {
-              if (prevSession.length === 7) return prevSession;
-              return [...prevSession, { id: randomUUID() }];
-            });
             intervalCleared = true;
           }
           return 0;
@@ -88,11 +74,23 @@ export default function Timer({
 
   return (
     <div className="flex flex-col items-center justify-between p-4 space-y-8 bg-white shadow-md rounded-md">
-      <p>
-        <span className="font-bold text-blue-600">{selectedTask.name}</span> |{" "}
-        <span className="italic text-gray-600">{selectedSubtask?.name}</span>
-      </p>
-      <h1 className="text-4xl font-bold">{formatTime(seconds)}</h1>
+      <div className="flex flex-col space-y-2">
+        <div className="flex items-center justify-center space-x-2">
+          <span className="font-bold text-blue-600">{selectedTask?.name}</span>
+          {selectedSubtask?.name && (
+            <span className="italic text-gray-600">
+              — {selectedSubtask?.name}
+            </span>
+          )}
+        </div>
+        <div className="flex items-center space-x-2">
+          {Array.from({ length: selectedTask?.pomodoros || 1 }, (_, index) => (
+            <FaRegClock key={index} className="text-red-500 w-6 h-6" />
+          ))}
+        </div>
+      </div>
+
+      <h1 className="text-8xl font-bold">{formatTime(seconds)}</h1>
       <div className="flex space-x-4">
         <button
           className={`px-4 py-2 font-semibold text-white rounded-md ${
@@ -110,16 +108,6 @@ export default function Timer({
             Void
           </button>
         )}
-      </div>
-      <button className="text-blue-500 mt-4" onClick={onHide}>
-        Hide Timer
-      </button>
-      <div className="flex space-x-4">
-        {session.map((item) => (
-          <button key={item.id} aria-label="favorite" className="text-red-600">
-            ❤️
-          </button>
-        ))}
       </div>
     </div>
   );

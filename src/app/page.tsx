@@ -1,27 +1,88 @@
 "use client";
 
-import React, { useState, ChangeEvent } from "react";
+import React, { useState, ChangeEvent, useEffect } from "react";
 import TaskManager from "./TaskManager";
 import Timer from "./Timer";
 import { Subtask, Task } from "./types"; // Define this type in a separate file or inline
+import TabController from "./TabController";
 
 const App: React.FC = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [taskInput, setTaskInput] = useState<string>("");
+  const [pomodoros, setPomodoros] = useState<number>(1);
   const [subtaskInput, setSubtaskInput] = useState<string>("");
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [selectedSubtask, setSelectedSubtask] = useState<Subtask | null>(null);
-  const [isTimerVisible, setIsTimerVisible] = useState<boolean>(false);
+  const [activeTab, setActiveTab] = useState<string>("Task");
 
   // Function to add a new task
   const addTask = () => {
     if (taskInput.trim() === "") return;
 
-    setTasks((prevTasks) => [
-      ...prevTasks,
-      { id: Date.now(), name: taskInput, subtasks: [] },
-    ]);
+    const lines = taskInput.split("\n");
+    const mainTask = lines[0]; // The first line is the main task
+
+    let task: Task = {
+      id: Date.now(),
+      name: mainTask.trim(),
+      pomodoros,
+      completedPomodoros: 0,
+      subtasks: [],
+    };
+
+    // Split the input into lines
+    const subtasks = lines
+      .slice(1)
+      .filter(
+        (line) =>
+          line.trim().startsWith("-") ||
+          line.trim().startsWith("*") ||
+          line.trim().startsWith("•")
+      )
+      .map((line, index) => ({
+        id: index + 1, // Subtask IDs can be index-based or generated differently
+        taskId: task.id, // Associate each subtask with the main task's ID
+        name: line.trim().slice(1).trim(), // Remove the bullet point and any leading/trailing whitespace
+        pomodoros: 1,
+        completedPomodoros: 0,
+      }));
+
+    task.subtasks = subtasks;
+
+    setTasks((prevTasks) => [...prevTasks, task]);
     setTaskInput("");
+    setSelectedTask(task);
+  };
+
+  const handlePomodorosInput = (pomodoros: number) => {
+    setPomodoros(pomodoros);
+  };
+
+  const handleTaskPomodorosChange = (taskId: number, pomodoros: number) => {
+    setTasks((prevTasks) =>
+      prevTasks.map((task) =>
+        task.id === taskId ? { ...task, pomodoros } : task
+      )
+    );
+  };
+
+  const handleSubtaskPomodorosChange = (
+    taskId: number,
+    subtaskId: number,
+    pomodoros: number
+  ) => {
+    setTasks((prevTasks) =>
+      prevTasks.map((task) =>
+        task.id === taskId
+          ? {
+              ...task,
+              subtasks: task.subtasks.map((subtask) =>
+                subtask.id === subtaskId ? { ...subtask, pomodoros } : subtask
+              ),
+            }
+          : task
+      )
+    );
   };
 
   // Function to delete a task
@@ -30,19 +91,28 @@ const App: React.FC = () => {
     taskId: number
   ) => {
     event.stopPropagation();
-    setTasks((prevTasks) => prevTasks.filter((task) => task.id !== taskId));
+
+    setTasks((prevTasks) => {
+      const updatedTasks = prevTasks.filter((task) => task.id !== taskId);
+      return updatedTasks;
+    });
+    // Check if the deleted task is the currently selected task
+    const isSelectedTask = selectedTask?.id === taskId;
+
+    // Update selected task and subtask if the deleted task was selected
+    if (isSelectedTask) {
+      setSelectedTask(null);
+      setSelectedSubtask(null);
+    }
   };
 
   // Function to handle task selection
   const handleSelectTask = (taskId: number) => {
     setSelectedTask(tasks.find((task) => task.id === taskId) || null);
-    if (selectedTask != null) {
-      setIsTimerVisible(true);
-    }
   };
 
   // Handle input changes
-  const handleTaskInputChange = (e: ChangeEvent<HTMLInputElement>) => {
+  const handleTaskInputChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
     setTaskInput(e.target.value);
   };
 
@@ -57,7 +127,13 @@ const App: React.FC = () => {
               ...task,
               subtasks: [
                 ...task.subtasks,
-                { id: Date.now(), name: subtaskInput, taskId }, // Add unique id for the subtask
+                {
+                  id: Date.now(),
+                  name: subtaskInput,
+                  taskId,
+                  pomodoros: 1,
+                  completedPomodoros: 0,
+                }, // Add unique id for the subtask
               ],
             }
           : task
@@ -73,6 +149,7 @@ const App: React.FC = () => {
     subTaskId: number
   ) => {
     event?.stopPropagation();
+
     setTasks((prevTasks) =>
       prevTasks.map((task) =>
         task.id === taskId
@@ -85,6 +162,12 @@ const App: React.FC = () => {
           : task
       )
     );
+
+    const isSelectedSubtask = selectedSubtask?.id === subTaskId;
+
+    if (isSelectedSubtask) {
+      setSelectedSubtask(null);
+    }
   };
 
   const handleSelectSubtask = (taskId: number, subTaskId: number) => {
@@ -100,50 +183,87 @@ const App: React.FC = () => {
     // Update state with selected task and subtask
     setSelectedTask(selectedTask);
     setSelectedSubtask(selectedSubtask);
-
-    // Show the timer (if needed)
-    if (selectedSubtask != null) {
-      setIsTimerVisible(true);
-    }
   };
 
   const handleSubtaskInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     setSubtaskInput(e.target.value);
   };
 
-  // Function to hide the timer
-  const handleHideTimer = () => {
-    setIsTimerVisible(false);
-    setSelectedTask(null);
+  const onTabChange = (tab: string) => {
+    if (tab === "Timer") {
+      if (!selectedTask && !selectedSubtask) {
+        alert("Please select a task");
+        return;
+      }
+    }
+    setActiveTab(tab);
   };
 
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">PomoCrafts</h1>
-      <div className="flex flex-col space-y-4">
-        {isTimerVisible && selectedTask !== null && (
-          <Timer
-            selectedTask={selectedTask}
-            selectedSubtask={selectedSubtask}
-            onHide={handleHideTimer}
-          />
-        )}
-        <TaskManager
-          tasks={tasks}
-          taskInput={taskInput}
-          subtaskInput={subtaskInput}
-          selectedTask={selectedTask}
-          selectedSubtask={selectedSubtask}
-          addTask={addTask}
-          addSubtask={addSubtask}
-          handleTaskInputChange={handleTaskInputChange}
-          handleSubtaskInputChange={handleSubtaskInputChange}
-          handleSelectTask={handleSelectTask}
-          handleDeleteTask={handleDeleteTask}
-          handleSelectSubtask={handleSelectSubtask}
-          handleDeleteSubtask={handleDeleteSubtask}
+    <div className="min-h-screen flex flex-col overflow-y-auto">
+      {/* Header */}
+      <header className="bg-gray-800 text-white py-4">
+        <div className="container mx-auto">
+          <h1 className="text-2xl font-bold">PomoCrafts</h1>
+        </div>
+      </header>
+
+      {/* Main Content Area */}
+      <main className="container mx-auto flex-grow p-4">
+        {/* Tab Controller */}
+        <TabController
+          tabs={["Task", "Timer", "Record"]}
+          activeTab={activeTab}
+          onTabChange={onTabChange}
         />
-      </div>
+
+        {/* Dynamic Content Based on Active Tab */}
+        <div className="mt-6">
+          {activeTab === "Task" && (
+            <TaskManager
+              tasks={tasks}
+              taskInput={taskInput}
+              pomodoros={pomodoros}
+              handlePomodorosInput={handlePomodorosInput}
+              handleTaskPomodorosChange={handleTaskPomodorosChange}
+              handleSubtaskPomodorosChange={handleSubtaskPomodorosChange}
+              subtaskInput={subtaskInput}
+              selectedTask={selectedTask}
+              selectedSubtask={selectedSubtask}
+              addTask={addTask}
+              addSubtask={addSubtask}
+              handleTaskInputChange={handleTaskInputChange}
+              handleSubtaskInputChange={handleSubtaskInputChange}
+              handleSelectTask={handleSelectTask}
+              handleDeleteTask={handleDeleteTask}
+              handleSelectSubtask={handleSelectSubtask}
+              handleDeleteSubtask={handleDeleteSubtask}
+            />
+          )}
+          {activeTab === "Timer" && (
+            <Timer
+              selectedTask={selectedTask}
+              selectedSubtask={selectedSubtask}
+            />
+          )}
+          {activeTab === "Record" && (
+            <div className="bg-white p-6 rounded-lg shadow-md">
+              <h2 className="text-xl font-bold mb-4">Record</h2>
+              {/* Placeholder for Record content */}
+              <p className="text-gray-700">Record content goes here...</p>
+            </div>
+          )}
+        </div>
+      </main>
+
+      {/* Footer */}
+      <footer className="bg-gray-800 text-white py-4 mt-auto">
+        <div className="container mx-auto text-center">
+          <p className="text-sm">
+            &copy; 2024 PomoCrafts. All rights reserved.
+          </p>
+        </div>
+      </footer>
     </div>
   );
 };
