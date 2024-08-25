@@ -1,17 +1,27 @@
 import { useState, useEffect, useCallback } from "react";
 import ticking from "./ticking";
 import { Subtask, Task } from "./types";
-import { FaClock, FaRegClock } from "react-icons/fa";
+import { FaClock } from "react-icons/fa";
+import PomodorosRating from "./PomodorosRating";
 
 interface TimerProps {
-  selectedTask: Task | null;
-  selectedSubtask: Subtask | null;
+  selectedTask: Task;
+  selectedSubtask: Subtask;
+  handleTaskPomodorosComplete: (taskId: number) => void;
+  handleSubtaskPomodorosComplete: (taskId: number, subtaskId: number) => void;
 }
 
-export default function Timer({ selectedTask, selectedSubtask }: TimerProps) {
+export default function Timer({
+  selectedTask,
+  selectedSubtask,
+  handleTaskPomodorosComplete,
+  handleSubtaskPomodorosComplete,
+}: TimerProps) {
   const [seconds, setSeconds] = useState(0);
   const [isRunning, setIsRunning] = useState(false);
   const intervalDuration = 1;
+
+  const displayedTask = selectedSubtask || selectedTask;
 
   const pomodoroSound = new Audio(ticking);
   pomodoroSound.loop = true;
@@ -33,6 +43,14 @@ export default function Timer({ selectedTask, selectedSubtask }: TimerProps) {
             clearInterval(interval);
             setIsRunning(false);
             intervalCleared = true;
+            if (selectedSubtask && selectedTask) {
+              handleSubtaskPomodorosComplete(
+                selectedTask.id,
+                selectedSubtask.id
+              );
+            } else if (selectedTask) {
+              handleTaskPomodorosComplete(selectedTask.id);
+            }
           }
           return 0;
         }
@@ -75,19 +93,23 @@ export default function Timer({ selectedTask, selectedSubtask }: TimerProps) {
   return (
     <div className="flex flex-col items-center justify-between p-4 space-y-8 bg-white shadow-md rounded-md">
       <div className="flex flex-col space-y-2">
-        <div className="flex items-center justify-center space-x-2">
-          <span className="font-bold text-blue-600">{selectedTask?.name}</span>
+        <div className="flex items-center justify-center">
+          <span className="text-xl font-semibold text-blue-700 mr-2">
+            {selectedTask?.name}
+          </span>
           {selectedSubtask?.name && (
-            <span className="italic text-gray-600">
-              — {selectedSubtask?.name}
+            <span className="text-lg text-gray-500">
+              &mdash; {selectedSubtask?.name}
             </span>
           )}
         </div>
-        <div className="flex items-center space-x-2">
-          {Array.from({ length: selectedTask?.pomodoros || 1 }, (_, index) => (
-            <FaRegClock key={index} className="text-red-500 w-6 h-6" />
-          ))}
-        </div>
+        <PomodorosRating
+          value={displayedTask.pomodoros || 0}
+          different={displayedTask.completedPomodoros}
+          showEmpty={false}
+          className="justify-center"
+          onChange={() => {}}
+        ></PomodorosRating>
       </div>
 
       <h1 className="text-8xl font-bold">{formatTime(seconds)}</h1>

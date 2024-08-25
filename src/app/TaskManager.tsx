@@ -1,16 +1,24 @@
 "use client";
-import React, { KeyboardEvent, useEffect, useRef, useState } from "react";
+import React, { KeyboardEvent, useEffect, useRef } from "react";
 import { Subtask, Task } from "./types"; // Define these types in a separate file or inline
-import { FaClock } from "react-icons/fa";
+import { FaClock, FaCheckCircle } from "react-icons/fa";
 import PomodorosRating from "./PomodorosRating";
 
 interface TaskManagerProps {
   tasks: Task[];
   taskInput: string;
   pomodoros: number;
-  handlePomodorosInput: (pomodoros: number) => void;
-  handleTaskPomodorosChange: (taskId: number, pomodoros: number) => void;
+  handlePomodorosInput: (
+    event: React.MouseEvent<HTMLSpanElement, MouseEvent>,
+    pomodoros: number
+  ) => void;
+  handleTaskPomodorosChange: (
+    event: React.MouseEvent<HTMLSpanElement, MouseEvent>,
+    taskId: number,
+    pomodoros: number
+  ) => void;
   handleSubtaskPomodorosChange: (
+    event: React.MouseEvent<HTMLSpanElement, MouseEvent>,
     taskId: number,
     subtaskId: number,
     pomodoros: number
@@ -96,7 +104,9 @@ const TaskManager: React.FC<TaskManagerProps> = ({
           />
           <PomodorosRating
             value={pomodoros}
-            onChange={handlePomodorosInput}
+            onChange={(event, pomodoros) =>
+              handlePomodorosInput(event, pomodoros)
+            }
             className="absolute bottom-4 right-4"
           />
         </div>
@@ -123,14 +133,33 @@ const TaskManager: React.FC<TaskManagerProps> = ({
             >
               <div className="flex items-center space-x-4">
                 <span className="text-lg font-medium">{task.name}</span>
-                <div className="flex items-center space-x-1">
+                {task.subtasks.length === 0 ? (
                   <PomodorosRating
                     value={task.pomodoros - task.completedPomodoros}
-                    onChange={(pomodoros) =>
-                      handleTaskPomodorosChange(task.id, pomodoros)
+                    onChange={(event, pomodoros) =>
+                      handleTaskPomodorosChange(event, task.id, pomodoros)
                     }
-                  ></PomodorosRating>
-                </div>
+                  />
+                ) : (
+                  <div className="flex items-center space-x-2">
+                    <FaClock className="text-red-500 w-6 h-6" />
+                    <span className="font-semibold">
+                      {task.subtasks.reduce(
+                        (total, subtask) =>
+                          total +
+                          (subtask.pomodoros - subtask.completedPomodoros),
+                        0
+                      )}
+                    </span>
+                    <FaCheckCircle className="text-green-500 w-6 h-6"></FaCheckCircle>
+                    <span className="font-semibold">
+                      {task.subtasks.reduce(
+                        (total, subtask) => total + subtask.completedPomodoros,
+                        0
+                      )}
+                    </span>
+                  </div>
+                )}
               </div>
               <div className="flex space-x-2">
                 <button
@@ -182,11 +211,11 @@ const TaskManager: React.FC<TaskManagerProps> = ({
                         <span className="text-gray-800">{subtask.name}</span>
                         <div className="flex items-center space-x-1">
                           <PomodorosRating
-                            value={
-                              subtask.pomodoros - subtask.completedPomodoros
-                            }
-                            onChange={(pomodoros) =>
+                            value={subtask.pomodoros}
+                            different={subtask.completedPomodoros}
+                            onChange={(event, pomodoros) =>
                               handleSubtaskPomodorosChange(
+                                event,
                                 task.id,
                                 subtask.id,
                                 pomodoros

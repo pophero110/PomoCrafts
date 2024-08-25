@@ -1,16 +1,30 @@
 import React from "react";
-import { FaClock, FaRegClock } from "react-icons/fa";
+import { FaClock, FaRegClock, FaCheckCircle } from "react-icons/fa";
 
 // Define types for props
 interface PomodorosRatingProps {
   className?: string;
   value: number;
-  onChange: (pomodoros: number) => void;
+  different?: number;
+  showEmpty?: boolean;
+  onChange: (
+    event: React.MouseEvent<HTMLSpanElement, MouseEvent>,
+    pomodoros: number
+  ) => void;
 }
 
-function PomodorosRating({ value, onChange, className }: PomodorosRatingProps) {
-  const handleClick = (value: number) => {
-    onChange(value);
+function PomodorosRating({
+  value,
+  different = 0,
+  showEmpty = true,
+  onChange,
+  className = "",
+}: PomodorosRatingProps) {
+  const handleClick = (
+    event: React.MouseEvent<HTMLSpanElement, MouseEvent>,
+    value: number
+  ) => {
+    onChange(event, value);
   };
 
   return (
@@ -18,13 +32,15 @@ function PomodorosRating({ value, onChange, className }: PomodorosRatingProps) {
       {[1, 2, 3, 4, 5].map((star) => (
         <span
           key={star}
-          onClick={() => handleClick(star)}
+          onClick={(event) => handleClick(event, star)}
           className="cursor-pointer"
         >
-          {value >= star ? (
+          {different >= star ? (
+            <FaCheckCircle className="text-green-500 w-6 h-6"></FaCheckCircle>
+          ) : value >= star ? (
             <FaClock className="text-red-500 w-6 h-6" />
           ) : (
-            <FaRegClock className="text-red-400 w-6 h-6" />
+            showEmpty && <FaRegClock className="text-red-400 w-6 h-6" />
           )}
         </span>
       ))}

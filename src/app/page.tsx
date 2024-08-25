@@ -52,33 +52,63 @@ const App: React.FC = () => {
     setTasks((prevTasks) => [...prevTasks, task]);
     setTaskInput("");
     setSelectedTask(task);
+    if (task.subtasks.length != 0) {
+      setSelectedSubtask(task.subtasks[0]);
+    }
   };
 
-  const handlePomodorosInput = (pomodoros: number) => {
+  const handlePomodorosInput = (
+    event: React.MouseEvent<HTMLSpanElement, MouseEvent>,
+    pomodoros: number
+  ) => {
+    event.stopPropagation();
     setPomodoros(pomodoros);
   };
 
-  const handleTaskPomodorosChange = (taskId: number, pomodoros: number) => {
+  const handleTaskPomodorosChange = (
+    event: React.MouseEvent<HTMLSpanElement, MouseEvent>,
+    taskId: number,
+    pomodoros: number
+  ) => {
+    event?.stopPropagation();
     setTasks((prevTasks) =>
-      prevTasks.map((task) =>
-        task.id === taskId ? { ...task, pomodoros } : task
-      )
+      prevTasks.map((task) => {
+        if (task.id === taskId) {
+          const updatedTask = { ...task, pomodoros };
+          const isSelectedTask = selectedTask?.id === taskId;
+          if (isSelectedTask) {
+            setSelectedTask(updatedTask);
+          }
+          return updatedTask;
+        }
+        return task;
+      })
     );
   };
 
   const handleSubtaskPomodorosChange = (
+    event: React.MouseEvent<HTMLSpanElement, MouseEvent>,
     taskId: number,
     subtaskId: number,
     pomodoros: number
   ) => {
+    event.stopPropagation();
     setTasks((prevTasks) =>
       prevTasks.map((task) =>
         task.id === taskId
           ? {
               ...task,
-              subtasks: task.subtasks.map((subtask) =>
-                subtask.id === subtaskId ? { ...subtask, pomodoros } : subtask
-              ),
+              subtasks: task.subtasks.map((subtask) => {
+                if (subtask.id === subtaskId) {
+                  const updatedSubtask = { ...subtask, pomodoros };
+                  const isSelectedSubtask = selectedSubtask?.id === subtaskId;
+                  if (isSelectedSubtask) {
+                    setSelectedSubtask(updatedSubtask);
+                  }
+                  return updatedSubtask;
+                }
+                return subtask;
+              }),
             }
           : task
       )
@@ -108,7 +138,17 @@ const App: React.FC = () => {
 
   // Function to handle task selection
   const handleSelectTask = (taskId: number) => {
-    setSelectedTask(tasks.find((task) => task.id === taskId) || null);
+    setSelectedTask(
+      tasks.find((task) => {
+        if (task.id === taskId) {
+          if (task.subtasks.length != 0) {
+            setSelectedSubtask(task.subtasks[0]);
+          }
+          return true;
+        }
+        return false;
+      }) || null
+    );
   };
 
   // Handle input changes
@@ -199,6 +239,54 @@ const App: React.FC = () => {
     setActiveTab(tab);
   };
 
+  const handleTaskPomodorosComplete = (taskId: number) => {
+    setTasks((prevTasks) =>
+      prevTasks.map((task) => {
+        if (task.id === taskId) {
+          const updatedTask = {
+            ...task,
+            completedPomodoros: task.completedPomodoros + 1,
+          };
+          const isSelectedTask = selectedTask?.id === taskId;
+          if (isSelectedTask) {
+            setSelectedTask(updatedTask);
+          }
+          return updatedTask;
+        }
+        return task;
+      })
+    );
+  };
+
+  const handleSubtaskPomodorosComplete = (
+    taskId: number,
+    subtaskId: number
+  ) => {
+    setTasks((prevTasks) =>
+      prevTasks.map((task) =>
+        task.id === taskId
+          ? {
+              ...task,
+              subtasks: task.subtasks.map((subtask) => {
+                if (subtask.id === subtaskId) {
+                  const updatedSubtask = {
+                    ...subtask,
+                    completedPomodoros: subtask.completedPomodoros + 1,
+                  };
+                  const isSelectedSubtask = selectedSubtask?.id === subtaskId;
+                  if (isSelectedSubtask) {
+                    setSelectedSubtask(updatedSubtask);
+                  }
+                  return updatedSubtask;
+                }
+                return subtask;
+              }),
+            }
+          : task
+      )
+    );
+  };
+
   return (
     <div className="min-h-screen flex flex-col overflow-y-auto">
       {/* Header */}
@@ -242,8 +330,10 @@ const App: React.FC = () => {
           )}
           {activeTab === "Timer" && (
             <Timer
-              selectedTask={selectedTask}
-              selectedSubtask={selectedSubtask}
+              selectedTask={selectedTask as any}
+              selectedSubtask={selectedSubtask as any}
+              handleTaskPomodorosComplete={handleTaskPomodorosComplete}
+              handleSubtaskPomodorosComplete={handleSubtaskPomodorosComplete}
             />
           )}
           {activeTab === "Record" && (
