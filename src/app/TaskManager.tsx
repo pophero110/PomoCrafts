@@ -1,7 +1,15 @@
 "use client";
-import React, { KeyboardEvent, useEffect, useRef } from "react";
+import React, { KeyboardEvent, useEffect, useRef, useState } from "react";
 import { Subtask, Task } from "./types"; // Define these types in a separate file or inline
-import { FaClock, FaCheckCircle } from "react-icons/fa";
+import {
+  FaClock,
+  FaCheckCircle,
+  FaRegPlayCircle,
+  FaRegTrashAlt,
+  FaExpandAlt,
+  FaCompressAlt,
+  FaPlus,
+} from "react-icons/fa";
 import PomodorosRating from "./PomodorosRating";
 
 interface TaskManagerProps {
@@ -31,16 +39,14 @@ interface TaskManagerProps {
   handleTaskInputChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
   handleSubtaskInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   handleSelectTask: (taskId: number) => void;
-  handleDeleteTask: (
-    event: React.MouseEvent<HTMLButtonElement, MouseEvent>,
-    taskId: number
-  ) => void;
+  handleDeleteTask: (event: React.MouseEvent, taskId: number) => void;
   handleSelectSubtask: (taskId: number, subTaskId: number) => void;
   handleDeleteSubtask: (
-    event: React.MouseEvent<HTMLButtonElement, MouseEvent>,
+    event: React.MouseEvent,
     taskId: number,
     subtaskId: number
   ) => void;
+  startTimer: () => void;
 }
 
 const TaskManager: React.FC<TaskManagerProps> = ({
@@ -61,9 +67,13 @@ const TaskManager: React.FC<TaskManagerProps> = ({
   handleDeleteTask,
   handleSelectSubtask,
   handleDeleteSubtask,
+  startTimer,
 }) => {
   // Reference for the subtask input field
   const subtaskInputRef = useRef<HTMLInputElement | null>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [isTaskInputExpanded, setIsTaskInputExpanded] =
+    useState<Boolean>(false);
 
   // Function to handle Enter key press
   const handleAddTaskKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -90,18 +100,40 @@ const TaskManager: React.FC<TaskManagerProps> = ({
     }
   };
 
+  const expandTaskInput = () => {
+    setIsTaskInputExpanded(true);
+  };
+
+  const compressTaskInput = () => {
+    setIsTaskInputExpanded(false);
+  };
+
   return (
     <div>
       {/* Task input field */}
       <div className="flex mb-4">
         <div className="w-full relative mr-2">
           <textarea
-            className="borde w-full border-gray-300 rounded-lg p-3 flex-grow resize-none h-24 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            ref={textareaRef}
+            rows={isTaskInputExpanded ? 5 : 3}
+            className="borde w-full h-full border-gray-300 rounded-lg p-3 flex-grow resize-none h-24 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="Enter a new task..."
             value={taskInput}
             onChange={handleTaskInputChange}
             onKeyDown={handleAddTaskKeyDown}
           />
+          {isTaskInputExpanded ? (
+            <FaCompressAlt
+              onClick={compressTaskInput}
+              className="absolute top-4 right-4 cursor-pointer hover:text-blue-500 transition-colors duration-200"
+            ></FaCompressAlt>
+          ) : (
+            <FaExpandAlt
+              onClick={expandTaskInput}
+              className="absolute top-4 right-4 cursor-pointer hover:text-blue-500 transition-colors duration-200"
+            />
+          )}
+
           <PomodorosRating
             value={pomodoros}
             onChange={(event, pomodoros) =>
@@ -111,10 +143,10 @@ const TaskManager: React.FC<TaskManagerProps> = ({
           />
         </div>
         <button
-          className="bg-blue-500 text-white px-4 py-2 rounded-md"
+          className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md"
           onClick={addTask}
         >
-          Add Task
+          <FaPlus></FaPlus>
         </button>
       </div>
 
@@ -135,7 +167,8 @@ const TaskManager: React.FC<TaskManagerProps> = ({
                 <span className="text-lg font-medium">{task.name}</span>
                 {task.subtasks.length === 0 ? (
                   <PomodorosRating
-                    value={task.pomodoros - task.completedPomodoros}
+                    value={task.pomodoros}
+                    completed={task.completedPomodoros}
                     onChange={(event, pomodoros) =>
                       handleTaskPomodorosChange(event, task.id, pomodoros)
                     }
@@ -161,13 +194,17 @@ const TaskManager: React.FC<TaskManagerProps> = ({
                   </div>
                 )}
               </div>
-              <div className="flex space-x-2">
-                <button
-                  className="text-red-500"
-                  onClick={(event) => handleDeleteTask(event, task.id)} // Add this button
-                >
-                  Delete
-                </button>
+              <div className="flex space-x-4">
+                {task.subtasks.length === 0 && (
+                  <FaRegPlayCircle
+                    className="text-blue-500 hover:text-blue-600 w-6 h-6 cursor-pointer"
+                    onClick={startTimer}
+                  ></FaRegPlayCircle>
+                )}
+                <FaRegTrashAlt
+                  className="text-gray-500 hover:text-gray-600 w-6 h-6 cursor-pointer"
+                  onClick={(event) => handleDeleteTask(event, task.id)}
+                ></FaRegTrashAlt>
               </div>
             </div>
 
@@ -187,10 +224,10 @@ const TaskManager: React.FC<TaskManagerProps> = ({
                     }
                   />
                   <button
-                    className="bg-green-500 text-white px-4 py-2 rounded-md"
+                    className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md"
                     onClick={() => addSubtask(task.id)}
                   >
-                    Add Subtask
+                    <FaPlus></FaPlus>
                   </button>
                 </div>
 
@@ -212,7 +249,7 @@ const TaskManager: React.FC<TaskManagerProps> = ({
                         <div className="flex items-center space-x-1">
                           <PomodorosRating
                             value={subtask.pomodoros}
-                            different={subtask.completedPomodoros}
+                            completed={subtask.completedPomodoros}
                             onChange={(event, pomodoros) =>
                               handleSubtaskPomodorosChange(
                                 event,
@@ -225,15 +262,17 @@ const TaskManager: React.FC<TaskManagerProps> = ({
                         </div>
                       </div>
 
-                      <div className="flex space-x-2">
-                        <button
-                          className="text-red-500"
+                      <div className="flex space-x-4">
+                        <FaRegPlayCircle
+                          className="text-blue-500 hover:text-blue-600 w-6 h-6 cursor-pointer"
+                          onClick={startTimer}
+                        ></FaRegPlayCircle>
+                        <FaRegTrashAlt
+                          className="text-gray-500 hover:text-gray-600 w-6 h-6 cursor-pointer"
                           onClick={(event) =>
                             handleDeleteSubtask(event, task.id, subtask.id)
                           }
-                        >
-                          Delete
-                        </button>
+                        ></FaRegTrashAlt>
                       </div>
                     </li>
                   ))}

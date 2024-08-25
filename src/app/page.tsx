@@ -14,6 +14,8 @@ const App: React.FC = () => {
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [selectedSubtask, setSelectedSubtask] = useState<Subtask | null>(null);
   const [activeTab, setActiveTab] = useState<string>("Task");
+  const [secondsElapsed, setSecondsElapsed] = useState<number>(0);
+  const [isTimerRunning, setIsTimerRunning] = useState<boolean>(false);
 
   // Function to add a new task
   const addTask = () => {
@@ -116,10 +118,7 @@ const App: React.FC = () => {
   };
 
   // Function to delete a task
-  const handleDeleteTask = (
-    event: React.MouseEvent<HTMLButtonElement, MouseEvent>,
-    taskId: number
-  ) => {
+  const handleDeleteTask = (event: React.MouseEvent, taskId: number) => {
     event.stopPropagation();
 
     setTasks((prevTasks) => {
@@ -184,7 +183,7 @@ const App: React.FC = () => {
 
   // Function to delete a subtask
   const handleDeleteSubtask = (
-    event: React.MouseEvent<HTMLButtonElement, MouseEvent>,
+    event: React.MouseEvent,
     taskId: number,
     subTaskId: number
   ) => {
@@ -287,6 +286,11 @@ const App: React.FC = () => {
     );
   };
 
+  const startTimer = () => {
+    setActiveTab("Timer");
+    setIsTimerRunning(true);
+  };
+
   return (
     <div className="min-h-screen flex flex-col overflow-y-auto">
       {/* Header */}
@@ -326,12 +330,17 @@ const App: React.FC = () => {
               handleDeleteTask={handleDeleteTask}
               handleSelectSubtask={handleSelectSubtask}
               handleDeleteSubtask={handleDeleteSubtask}
+              startTimer={startTimer}
             />
           )}
           {activeTab === "Timer" && (
             <Timer
-              selectedTask={selectedTask as any}
-              selectedSubtask={selectedSubtask as any}
+              secondsElapsed={secondsElapsed}
+              setSecondsElapsed={setSecondsElapsed}
+              isTimerRunning={isTimerRunning}
+              setIsTimerRunning={setIsTimerRunning}
+              selectedTask={selectedTask as Task} // a task must be selected
+              selectedSubtask={selectedSubtask}
               handleTaskPomodorosComplete={handleTaskPomodorosComplete}
               handleSubtaskPomodorosComplete={handleSubtaskPomodorosComplete}
             />

@@ -4,9 +4,9 @@ import { FaClock, FaRegClock, FaCheckCircle } from "react-icons/fa";
 // Define types for props
 interface PomodorosRatingProps {
   className?: string;
+  mode?: "Input" | "Display";
   value: number;
-  different?: number;
-  showEmpty?: boolean;
+  completed?: number;
   onChange: (
     event: React.MouseEvent<HTMLSpanElement, MouseEvent>,
     pomodoros: number
@@ -15,9 +15,9 @@ interface PomodorosRatingProps {
 
 function PomodorosRating({
   value,
-  different = 0,
-  showEmpty = true,
+  completed = 0,
   onChange,
+  mode = "Input",
   className = "",
 }: PomodorosRatingProps) {
   const handleClick = (
@@ -27,6 +27,18 @@ function PomodorosRating({
     onChange(event, value);
   };
 
+  if (mode === "Display") {
+    return (
+      <div className={"flex " + className}>
+        {Array.from({ length: completed }).map((_, index) => (
+          <FaCheckCircle className="text-green-500 w-6 h-6"></FaCheckCircle>
+        ))}
+        {Array.from({ length: value - completed }).map((_, index) => (
+          <FaClock className="text-red-500 w-6 h-6"></FaClock>
+        ))}
+      </div>
+    );
+  }
   return (
     <div className={"flex " + className}>
       {[1, 2, 3, 4, 5].map((star) => (
@@ -35,12 +47,12 @@ function PomodorosRating({
           onClick={(event) => handleClick(event, star)}
           className="cursor-pointer"
         >
-          {different >= star ? (
+          {completed >= star ? (
             <FaCheckCircle className="text-green-500 w-6 h-6"></FaCheckCircle>
           ) : value >= star ? (
             <FaClock className="text-red-500 w-6 h-6" />
           ) : (
-            showEmpty && <FaRegClock className="text-red-400 w-6 h-6" />
+            <FaRegClock className="text-red-400 w-6 h-6 cursor-pointer hover:text-red-500 transition-colors duration-200" />
           )}
         </span>
       ))}

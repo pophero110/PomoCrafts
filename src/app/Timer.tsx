@@ -1,33 +1,37 @@
-import { useState, useEffect, useCallback } from "react";
+import { useEffect, useCallback } from "react";
 import ticking from "./ticking";
 import { Subtask, Task } from "./types";
-import { FaClock } from "react-icons/fa";
 import PomodorosRating from "./PomodorosRating";
 
 interface TimerProps {
+  secondsElapsed: number;
+  setSecondsElapsed: React.Dispatch<React.SetStateAction<number>>;
+  isTimerRunning: boolean;
+  setIsTimerRunning: React.Dispatch<React.SetStateAction<boolean>>;
   selectedTask: Task;
-  selectedSubtask: Subtask;
+  selectedSubtask: Subtask | null;
   handleTaskPomodorosComplete: (taskId: number) => void;
   handleSubtaskPomodorosComplete: (taskId: number, subtaskId: number) => void;
 }
 
 export default function Timer({
+  secondsElapsed,
+  setSecondsElapsed,
+  isTimerRunning,
+  setIsTimerRunning,
   selectedTask,
   selectedSubtask,
   handleTaskPomodorosComplete,
   handleSubtaskPomodorosComplete,
 }: TimerProps) {
-  const [seconds, setSeconds] = useState(0);
-  const [isRunning, setIsRunning] = useState(false);
   const intervalDuration = 1;
-
   const displayedTask = selectedSubtask || selectedTask;
 
   const pomodoroSound = new Audio(ticking);
   pomodoroSound.loop = true;
 
   useEffect(() => {
-    if (!isRunning) {
+    if (!isTimerRunning) {
       pomodoroSound.pause();
       pomodoroSound.currentTime = 0;
       return;
@@ -37,18 +41,18 @@ export default function Timer({
     let intervalCleared = false;
 
     const interval = setInterval(() => {
-      setSeconds((prev) => {
+      setSecondsElapsed((prev) => {
         if (prev === intervalDuration) {
           if (!intervalCleared) {
             clearInterval(interval);
-            setIsRunning(false);
+            setIsTimerRunning(false);
             intervalCleared = true;
-            if (selectedSubtask && selectedTask) {
+            if (selectedSubtask != null) {
               handleSubtaskPomodorosComplete(
                 selectedTask.id,
                 selectedSubtask.id
               );
-            } else if (selectedTask) {
+            } else if (selectedTask != null) {
               handleTaskPomodorosComplete(selectedTask.id);
             }
           }
@@ -63,7 +67,7 @@ export default function Timer({
       pomodoroSound.pause();
       pomodoroSound.currentTime = 0;
     };
-  }, [isRunning, intervalDuration]);
+  }, [isTimerRunning, intervalDuration]);
 
   const formatTime = useCallback((totalSeconds: number) => {
     const minutes = Math.floor(totalSeconds / 60);
@@ -75,18 +79,29 @@ export default function Timer({
   }, []);
 
   const handleStart = useCallback(() => {
-    setIsRunning(true);
-  }, []);
+    if (selectedTask.pomodoros === selectedTask.completedPomodoros) {
+      alert("Task is completed");
+      return;
+    }
+    if (
+      selectedSubtask != null &&
+      selectedSubtask.pomodoros === selectedSubtask.completedPomodoros
+    ) {
+      alert("Task is completed");
+      return;
+    }
+    setIsTimerRunning(true);
+  }, [selectedTask, selectedSubtask]);
 
   const handlePause = useCallback(() => {
-    setIsRunning(false);
+    setIsTimerRunning(false);
     pomodoroSound.pause();
   }, []);
 
   const handleVoid = useCallback(() => {
     if (window.confirm("Are you sure you want to void the current Pomodoro?")) {
-      setIsRunning(false);
-      setSeconds(0);
+      setIsTimerRunning(false);
+      setSecondsElapsed(0);
     }
   }, []);
 
@@ -104,25 +119,25 @@ export default function Timer({
           )}
         </div>
         <PomodorosRating
-          value={displayedTask.pomodoros || 0}
-          different={displayedTask.completedPomodoros}
-          showEmpty={false}
+          value={displayedTask.pomodoros}
+          completed={displayedTask.completedPomodoros}
+          mode="Display"
           className="justify-center"
           onChange={() => {}}
         ></PomodorosRating>
       </div>
 
-      <h1 className="text-8xl font-bold">{formatTime(seconds)}</h1>
+      <h1 className="text-8xl font-bold">{formatTime(secondsElapsed)}</h1>
       <div className="flex space-x-4">
         <button
           className={`px-4 py-2 font-semibold text-white rounded-md ${
-            isRunning ? "bg-red-500" : "bg-blue-500"
+            isTimerRunning ? "bg-red-500" : "bg-blue-500"
           }`}
-          onClick={isRunning ? handlePause : handleStart}
+          onClick={isTimerRunning ? handlePause : handleStart}
         >
-          {isRunning ? "Pause" : "Start"}
+          {isTimerRunning ? "Pause" : "Start"}
         </button>
-        {isRunning && (
+        {isTimerRunning && (
           <button
             className="px-4 py-2 font-semibold text-white bg-red-600 rounded-md"
             onClick={handleVoid}
