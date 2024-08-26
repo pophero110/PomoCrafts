@@ -4,8 +4,8 @@ import { Subtask, Task } from "./types"; // Define these types in a separate fil
 import {
   FaClock,
   FaCheckCircle,
-  FaRegPlayCircle,
-  FaRegTrashAlt,
+  FaPlay,
+  FaTrash,
   FaExpandAlt,
   FaCompressAlt,
   FaPlus,
@@ -255,15 +255,15 @@ const TaskManager: React.FC<TaskManagerProps> = ({
               </div>
               <div className="flex space-x-4">
                 {task.subtasks.length === 0 && (
-                  <FaRegPlayCircle
-                    className="text-blue-500 hover:text-blue-600 w-6 h-6 cursor-pointer"
+                  <FaPlay
+                    className="text-gray-500 hover:text-gray-600 w-6 h-6 cursor-pointer"
                     onClick={startTimer}
-                  ></FaRegPlayCircle>
+                  ></FaPlay>
                 )}
-                <FaRegTrashAlt
+                <FaTrash
                   className="text-gray-500 hover:text-gray-600 w-6 h-6 cursor-pointer"
                   onClick={(event) => handleDeleteTask(event, task.id)}
-                ></FaRegTrashAlt>
+                ></FaTrash>
               </div>
             </div>
 
@@ -283,7 +283,7 @@ const TaskManager: React.FC<TaskManagerProps> = ({
                     }
                   />
                   <button
-                    className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md"
+                    className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md"
                     onClick={() => addSubtask(task.id)}
                   >
                     <FaPlus></FaPlus>
@@ -294,13 +294,12 @@ const TaskManager: React.FC<TaskManagerProps> = ({
                   {task.subtasks.map((subtask) => (
                     <li
                       key={subtask.id} // Use subtask.id if available for better key management
-                      className={`flex justify-between items-center bg-gray-100 shadow-sm rounded-md p-3 hover:bg-gray-200 transition-colors duration-200
+                      className={`flex justify-between items-center bg-white shadow-md rounded-md p-4 transition-all duration-300 
                         ${
                           selectedSubtask?.id === subtask.id
                             ? "bg-blue-100 border-2 border-blue-500"
                             : "hover:bg-gray-100 hover:shadow-lg"
-                        } 
-                        `}
+                        }`}
                       onClick={() => handleSelectSubtask(task.id, subtask.id)}
                       onDoubleClick={(e) => {
                         e.stopPropagation();
@@ -356,16 +355,16 @@ const TaskManager: React.FC<TaskManagerProps> = ({
                       </div>
 
                       <div className="flex space-x-4">
-                        <FaRegPlayCircle
-                          className="text-blue-500 hover:text-blue-600 w-6 h-6 cursor-pointer"
+                        <FaPlay
+                          className="text-gray-500 hover:text-gray-600 w-6 h-6 cursor-pointer"
                           onClick={startTimer}
-                        ></FaRegPlayCircle>
-                        <FaRegTrashAlt
+                        ></FaPlay>
+                        <FaTrash
                           className="text-gray-500 hover:text-gray-600 w-6 h-6 cursor-pointer"
                           onClick={(event) =>
                             handleDeleteSubtask(event, task.id, subtask.id)
                           }
-                        ></FaRegTrashAlt>
+                        ></FaTrash>
                       </div>
                     </li>
                   ))}

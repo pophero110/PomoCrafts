@@ -2,6 +2,8 @@ import { useEffect, useCallback } from "react";
 import ticking from "./ticking";
 import { Subtask, Task } from "./types";
 import PomodorosRating from "./PomodorosRating";
+import { FaPlay, FaPause, FaStop } from "react-icons/fa";
+import CircularProgressBar from "./CircularProgressBar";
 
 interface TimerProps {
   secondsElapsed: number;
@@ -24,7 +26,7 @@ export default function Timer({
   handleTaskPomodorosComplete,
   handleSubtaskPomodorosComplete,
 }: TimerProps) {
-  const intervalDuration = 1;
+  const intervalDuration = 20;
   const displayedTask = selectedSubtask || selectedTask;
 
   const pomodoroSound = new Audio(ticking);
@@ -106,44 +108,44 @@ export default function Timer({
   }, []);
 
   return (
-    <div className="flex flex-col items-center justify-between p-4 space-y-8 bg-white shadow-md rounded-md">
+    <div className="flex flex-col items-center justify-between p-4 space-y-2 bg-white shadow-md rounded-md">
       <div className="flex flex-col space-y-2">
-        <div className="flex items-center justify-center">
-          <span className="text-xl font-semibold text-blue-700 mr-2">
-            {selectedTask?.name}
-          </span>
-          {selectedSubtask?.name && (
-            <span className="text-lg text-gray-500">
-              &mdash; {selectedSubtask?.name}
-            </span>
-          )}
-        </div>
-        <PomodorosRating
-          value={displayedTask.pomodoros}
-          completed={displayedTask.completedPomodoros}
-          mode="Display"
-          className="justify-center"
-          onChange={() => {}}
-        ></PomodorosRating>
-      </div>
-
-      <h1 className="text-8xl font-bold">{formatTime(secondsElapsed)}</h1>
-      <div className="flex space-x-4">
-        <button
-          className={`px-4 py-2 font-semibold text-white rounded-md ${
-            isTimerRunning ? "bg-red-500" : "bg-blue-500"
-          }`}
-          onClick={isTimerRunning ? handlePause : handleStart}
+        <CircularProgressBar
+          secondsElapsed={secondsElapsed}
+          duration={intervalDuration}
+          caption={`I'm focusing on ${displayedTask.name}`}
+          formattedTime={formatTime(secondsElapsed)}
         >
-          {isTimerRunning ? "Pause" : "Start"}
-        </button>
+          <PomodorosRating
+            value={displayedTask.pomodoros}
+            completed={displayedTask.completedPomodoros}
+            mode="Display"
+            className="justify-center"
+            onChange={() => {}}
+          ></PomodorosRating>
+        </CircularProgressBar>
+      </div>
+      <div className="flex justify-center space-x-8">
+        {isTimerRunning ? (
+          <FaPause
+            className={
+              "text-blue-500 w-14 h-14 cursor-pointer hover:text-blue-600"
+            }
+            onClick={handlePause}
+          ></FaPause>
+        ) : (
+          <FaPlay
+            className={
+              "text-blue-500 w-14 h-14 cursor-pointer hover:text-blue-600"
+            }
+            onClick={handleStart}
+          ></FaPlay>
+        )}
         {isTimerRunning && (
-          <button
-            className="px-4 py-2 font-semibold text-white bg-red-600 rounded-md"
+          <FaStop
+            className="text-blue-500 hover:text-blue-600 w-14 h-14 cursor-pointer"
             onClick={handleVoid}
-          >
-            Void
-          </button>
+          ></FaStop>
         )}
       </div>
     </div>
