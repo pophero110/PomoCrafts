@@ -31,10 +31,16 @@ function PomodorosRating({
     return (
       <div className={"flex " + className}>
         {Array.from({ length: completed }).map((_, index) => (
-          <FaCheckCircle className="text-green-500 w-6 h-6"></FaCheckCircle>
+          <FaCheckCircle
+            key={"completed" + index}
+            className="text-green-500 w-6 h-6"
+          ></FaCheckCircle>
         ))}
         {Array.from({ length: value - completed }).map((_, index) => (
-          <FaClock className="text-red-500 w-6 h-6"></FaClock>
+          <FaClock
+            key={"pomodoros" + index}
+            className="text-red-500 w-6 h-6"
+          ></FaClock>
         ))}
       </div>
     );
