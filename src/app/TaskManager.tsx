@@ -146,7 +146,7 @@ const TaskManager: React.FC<TaskManagerProps> = ({
           <textarea
             ref={newTaskTextareaRef}
             rows={isTaskInputExpanded ? 5 : 3}
-            className="borde w-full h-full border-gray-300 rounded-lg p-3 flex-grow resize-none h-24 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="borde w-full h-full border-gray-300 rounded-lg p-3 flex-grow resize-none shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="Enter a new task..."
             value={taskInput}
             onChange={handleTaskInputChange}
@@ -185,7 +185,7 @@ const TaskManager: React.FC<TaskManagerProps> = ({
         {tasks.map((task) => (
           <li key={task.id} className="bg-white shadow-md rounded-md p-4">
             <div
-              className={`flex justify-between items-center bg-white shadow-md rounded-md p-4 transition-all duration-300 
+              className={`flex space-x-4 justify-between items-center bg-white shadow-md rounded-md p-4 transition-all duration-300 
                 ${
                   selectedTask?.id === task.id
                     ? "bg-blue-100 border-2 border-blue-500"
@@ -211,19 +211,21 @@ const TaskManager: React.FC<TaskManagerProps> = ({
               }}
               onBlur={() => setIsEditingTask(0)}
             >
-              <div className="flex items-center space-x-4">
-                {isEditingTask === task.id ? (
-                  <textarea
-                    id={`task-input-${task.id}`}
-                    rows={1}
-                    className="borde w-full h-full border-gray-300 rounded-lg p-3 flex-grow resize-none h-24 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    value={taskNameInput}
-                    onChange={(e) => setTaskNameInput(e.target.value)}
-                    onKeyDown={handleEditTaskKeyDown}
-                  />
-                ) : (
-                  <span className="text-lg font-medium">{task.name}</span>
-                )}
+              {isEditingTask === task.id ? (
+                <textarea
+                  id={`task-input-${task.id}`}
+                  rows={1}
+                  className="borde w-full h-full border-gray-300 rounded-lg p-3 flex-grow resize-none shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  value={taskNameInput}
+                  onChange={(e) => setTaskNameInput(e.target.value)}
+                  onKeyDown={handleEditTaskKeyDown}
+                />
+              ) : (
+                <span className="text-lg font-medium flex-grow truncate">
+                  {task.name}
+                </span>
+              )}
+              <div className="flex space-x-4">
                 {task.subtasks.length === 0 ? (
                   <PomodorosRating
                     value={task.pomodoros}
@@ -252,8 +254,6 @@ const TaskManager: React.FC<TaskManagerProps> = ({
                     </span>
                   </div>
                 )}
-              </div>
-              <div className="flex space-x-4">
                 {task.subtasks.length === 0 && (
                   <FaPlay
                     className="text-gray-500 hover:text-gray-600 w-6 h-6 cursor-pointer"
@@ -274,7 +274,7 @@ const TaskManager: React.FC<TaskManagerProps> = ({
                   <input
                     type="text"
                     ref={subtaskInputRef} // Attach ref here
-                    className="border border-gray-300 rounded-md p-2 flex-grow mr-2"
+                    className="border border-gray-3 break-words00 rounded-md p-2 flex-grow mr-2"
                     placeholder="Enter a subtask..."
                     value={subtaskInput}
                     onChange={handleSubtaskInputChange}
@@ -326,7 +326,7 @@ const TaskManager: React.FC<TaskManagerProps> = ({
                           <textarea
                             id={`subtask-input-${subtask.id}`}
                             rows={1}
-                            className="borde w-full h-full border-gray-300 rounded-lg p-3 flex-grow resize-none h-24 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="borde w-full h-full border-gray-300 rounded-lg p-3 flex-grow resize-none shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                             value={subtaskNameInput}
                             onChange={(e) =>
                               setSubtaskNameInput(e.target.value)

@@ -26,7 +26,7 @@ export default function Timer({
   handleTaskPomodorosComplete,
   handleSubtaskPomodorosComplete,
 }: TimerProps) {
-  const intervalDuration = 20;
+  const intervalDuration = 1;
   const displayedTask = selectedSubtask || selectedTask;
 
   const pomodoroSound = new Audio(ticking);

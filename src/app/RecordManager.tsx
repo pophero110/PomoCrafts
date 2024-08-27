@@ -3,20 +3,13 @@ import { Task } from "./types";
 
 interface RecordManagerProps {
   tasks: Task[];
+  handleTaskNoteUpdate: (taskId: number, note: string) => void;
 }
 
-const RecordManager: React.FC<RecordManagerProps> = ({ tasks }) => {
-  // State to hold notes for completed tasks
-  const [notes, setNotes] = useState<{ [taskId: number]: string }>({});
-
-  // Handler to update notes for a task
-  const handleNoteChange = (taskId: number, note: string) => {
-    setNotes((prevNotes) => ({
-      ...prevNotes,
-      [taskId]: note,
-    }));
-  };
-
+const RecordManager: React.FC<RecordManagerProps> = ({
+  tasks,
+  handleTaskNoteUpdate,
+}) => {
   // Filter to get completed tasks
   const completedTasks = tasks.filter((task) => {
     const areAllSubtasksCompleted = task.subtasks.every(
@@ -51,6 +44,8 @@ const RecordManager: React.FC<RecordManagerProps> = ({ tasks }) => {
                 className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring focus:ring-blue-200"
                 rows={3}
                 placeholder="Add a note..."
+                value={task.note}
+                onChange={(e) => handleTaskNoteUpdate(task.id, e.target.value)}
               ></textarea>
 
               {/* Subtasks Section */}

@@ -312,6 +312,12 @@ const App: React.FC = () => {
     setIsEditingTask(0);
   };
 
+  const handleTaskNoteUpdate = (taskId: number, note: string) => {
+    setTasks((prevTasks) =>
+      prevTasks.map((task) => (task.id === taskId ? { ...task, note } : task))
+    );
+  };
+
   const handleSubtaskEditing = (name: string) => {
     setTasks((prev) =>
       prev.map((task) => {
@@ -391,7 +397,10 @@ const App: React.FC = () => {
             />
           )}
           {activeTab === "Record" && (
-            <RecordManager tasks={tasks}></RecordManager>
+            <RecordManager
+              tasks={tasks}
+              handleTaskNoteUpdate={handleTaskNoteUpdate}
+            ></RecordManager>
           )}
         </div>
       </main>
