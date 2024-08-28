@@ -1,15 +1,11 @@
-import React, { useState } from "react";
-import { Task } from "./types";
+import React from "react";
+import { useTasks } from "./hooks/TasksContext";
 
-interface RecordManagerProps {
-  tasks: Task[];
-  handleTaskNoteUpdate: (taskId: number, note: string) => void;
-}
+interface RecordManagerProps {}
 
-const RecordManager: React.FC<RecordManagerProps> = ({
-  tasks,
-  handleTaskNoteUpdate,
-}) => {
+const RecordManager: React.FC<RecordManagerProps> = ({}) => {
+  const { tasks, findTask, updateTask } = useTasks();
+
   // Filter to get completed tasks
   const completedTasks = tasks.filter((task) => {
     const areAllSubtasksCompleted = task.subtasks.every(
@@ -19,6 +15,13 @@ const RecordManager: React.FC<RecordManagerProps> = ({
       task.pomodoros === task.completedPomodoros && areAllSubtasksCompleted
     );
   });
+
+  const handleTaskNoteUpdate = (taskId: number, note: string) => {
+    const task = findTask(taskId);
+    if (task) {
+      updateTask({ ...task, note });
+    }
+  };
 
   return (
     <div className="p-4">
