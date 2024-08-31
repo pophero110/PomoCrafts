@@ -26,30 +26,56 @@ export default function Timer({
   selectedSubtask,
   setSelectedSubtask,
 }: TimerProps) {
-  const { findTask, updateTask, findSubtask, updateSubtask } = useTasks();
+  const { updateTask, updateSubtask } = useTasks();
   const intervalDuration = 3;
   const displayedTask = selectedSubtask || selectedTask;
 
   const pomodoroSound = new Audio(ticking);
   pomodoroSound.loop = true;
 
-  useEffect(() => {
-    const handleTimerComplete = () => {
-      setIsTimerRunning(false);
-      if (selectedSubtask) {
-        handleSubtaskPomodorosComplete(selectedSubtask.id);
-      } else if (selectedTask) {
-        handleTaskPomodorosComplete(selectedTask.id);
-      }
-    };
-
-    if (isTimerRunning) {
+  const handleSound = (play: boolean) => {
+    if (play) {
       pomodoroSound.play();
     } else {
       pomodoroSound.pause();
       pomodoroSound.currentTime = 0;
-      return;
     }
+  };
+
+  const handleCompletion = useCallback(
+    (type: "task" | "subtask") => {
+      if (type === "task" && selectedTask) {
+        const updatedTask = {
+          ...selectedTask,
+          completedPomodoros: selectedTask.completedPomodoros + 1,
+        };
+        updateTask(updatedTask);
+        setSelectedTask(updatedTask);
+      } else if (type === "subtask" && selectedSubtask) {
+        const updatedSubtask = {
+          ...selectedSubtask,
+          completedPomodoros: selectedSubtask.completedPomodoros + 1,
+        };
+        updateSubtask(updatedSubtask);
+        setSelectedSubtask(updatedSubtask);
+      }
+    },
+    [selectedTask, selectedSubtask, updateTask, updateSubtask]
+  );
+
+  useEffect(() => {
+    const handleTimerComplete = () => {
+      setIsTimerRunning(false);
+      if (selectedSubtask) {
+        handleCompletion("subtask");
+      } else if (selectedTask) {
+        handleCompletion("task");
+      }
+    };
+
+    handleSound(isTimerRunning);
+
+    if (!isTimerRunning) return;
 
     const interval = setInterval(() => {
       setSecondsElapsed((prev) => {
@@ -64,10 +90,15 @@ export default function Timer({
 
     return () => {
       clearInterval(interval);
-      pomodoroSound.pause();
-      pomodoroSound.currentTime = 0;
+      handleSound(false);
     };
-  }, [isTimerRunning, intervalDuration, selectedTask, selectedSubtask]);
+  }, [
+    isTimerRunning,
+    intervalDuration,
+    selectedTask,
+    selectedSubtask,
+    handleCompletion,
+  ]);
 
   const formatTime = useCallback((totalSeconds: number) => {
     const minutes = Math.floor(totalSeconds / 60);
@@ -79,15 +110,13 @@ export default function Timer({
   }, []);
 
   const handleStart = useCallback(() => {
-    if (selectedTask.pomodoros === selectedTask.completedPomodoros) {
-      alert("Task is completed");
-      return;
-    }
     if (
-      selectedSubtask != null &&
-      selectedSubtask.pomodoros === selectedSubtask.completedPomodoros
+      !selectedTask ||
+      selectedTask.pomodoros === selectedTask.completedPomodoros ||
+      (selectedSubtask &&
+        selectedSubtask.pomodoros === selectedSubtask.completedPomodoros)
     ) {
-      alert("Task is completed");
+      alert("Task or subtask is completed");
       return;
     }
     setIsTimerRunning(true);
@@ -95,7 +124,7 @@ export default function Timer({
 
   const handlePause = useCallback(() => {
     setIsTimerRunning(false);
-    pomodoroSound.pause();
+    handleSound(false);
   }, []);
 
   const handleCancel = useCallback(() => {
@@ -106,37 +135,6 @@ export default function Timer({
       setSecondsElapsed(0);
     }
   }, []);
-
-  const handleTaskPomodorosComplete = (taskId: number) => {
-    const task = findTask(taskId);
-    if (task) {
-      const updatedTask = {
-        ...task,
-        completedPomodoros: task.completedPomodoros + 1,
-      };
-      updateTask(updatedTask);
-      const isCurrentTaskSelected = selectedTask?.id === taskId;
-      if (isCurrentTaskSelected) {
-        setSelectedTask(updatedTask);
-      }
-    }
-  };
-
-  const handleSubtaskPomodorosComplete = (subtaskId: number) => {
-    const subtask = findSubtask(subtaskId);
-    if (subtask) {
-      const updatedSubtask = {
-        ...subtask,
-        completedPomodoros: subtask.completedPomodoros + 1,
-      };
-      updateSubtask(updatedSubtask);
-
-      const isCurrentSubtaskSelected = selectedSubtask?.id === subtaskId;
-      if (isCurrentSubtaskSelected) {
-        setSelectedSubtask(updatedSubtask);
-      }
-    }
-  };
 
   return (
     <div className="flex flex-col items-center justify-between p-4 space-y-2 bg-white shadow-md rounded-md">
@@ -159,24 +157,20 @@ export default function Timer({
       <div className="flex justify-center space-x-8">
         {isTimerRunning ? (
           <FaPause
-            className={
-              "text-blue-500 w-14 h-14 cursor-pointer hover:text-blue-600"
-            }
+            className="text-blue-500 w-14 h-14 cursor-pointer hover:text-blue-600"
             onClick={handlePause}
-          ></FaPause>
+          />
         ) : (
           <FaPlay
-            className={
-              "text-blue-500 w-14 h-14 cursor-pointer hover:text-blue-600"
-            }
+            className="text-blue-500 w-14 h-14 cursor-pointer hover:text-blue-600"
             onClick={handleStart}
-          ></FaPlay>
+          />
         )}
         {isTimerRunning && (
           <FaStop
             className="text-blue-500 hover:text-blue-600 w-14 h-14 cursor-pointer"
             onClick={handleCancel}
-          ></FaStop>
+          />
         )}
       </div>
     </div>

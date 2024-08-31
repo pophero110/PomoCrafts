@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import TaskInput from "./TaskInput";
 import TaskItem from "./TaskItem";
-import SubtaskInput from "./SubtaskInput";
 import SubtaskItem from "./SubtaskItem";
 import { Task, Subtask, useTasks } from "../hooks/TasksContext";
+import SubtaskInput from "./SubtaskInput";
 
 interface TaskManagerProps {
   selectedTask: Task | null;
@@ -31,26 +31,28 @@ const TaskManager: React.FC<TaskManagerProps> = ({
     deleteSubtask,
     findSubtask,
   } = useTasks();
-  const [taskInput, setTaskInput] = useState<string>("");
-  const [taskNameInput, setTaskNameInput] = useState<string>("");
-  const [isEditingTask, setIsEditingTask] = useState<number>(0);
-  const [subtaskInput, setSubtaskInput] = useState<string>("");
-  const [subtaskNameInput, setSubtaskNameInput] = useState<string>("");
-  const [isEditingSubtask, setIsEditingSubtask] = useState<number>(0);
-  const [pomodoros, setPomodoros] = useState<number>(1);
-  const [isTaskInputExpanded, setIsTaskInputExpanded] =
-    useState<boolean>(false);
+
+  // Group related states together
+  const [taskState, setTaskState] = useState({
+    name: "",
+    pomodoros: 1,
+  });
+
+  const [subtaskState, setSubtaskState] = useState({
+    name: "",
+    pomodoros: 1,
+  });
 
   const handleCreateTask = () => {
-    if (taskInput.trim() === "") return;
+    if (taskState.name.trim() === "") return;
 
-    const lines = taskInput.split("\n");
+    const lines = taskState.name.split("\n");
     const mainTask = lines[0]; // The first line is the main task
 
     let task: Task = {
       id: Date.now(),
       name: mainTask.trim(),
-      pomodoros,
+      pomodoros: taskState.pomodoros,
       completedPomodoros: 0,
       subtasks: [],
       note: "",
@@ -66,9 +68,9 @@ const TaskManager: React.FC<TaskManagerProps> = ({
           line.trim().startsWith("•")
       )
       .map((line, index) => ({
-        id: index + 1, // Subtask IDs can be index-based or generated differently
-        taskId: task.id, // Associate each subtask with the main task's ID
-        name: line.trim().slice(1).trim(), // Remove the bullet point and any leading/trailing whitespace
+        id: index + 1,
+        taskId: task.id,
+        name: line.trim().slice(1).trim(),
         pomodoros: 1,
         completedPomodoros: 0,
         note: "",
@@ -77,29 +79,25 @@ const TaskManager: React.FC<TaskManagerProps> = ({
     task.subtasks = subtasks;
 
     createTask(task);
-    setTaskInput("");
+    setTaskState({ ...taskState, name: "" });
     setSelectedTask(task);
-    if (task.subtasks.length != 0) {
+
+    if (task.subtasks.length !== 0) {
       task.pomodoros = 0;
       setSelectedSubtask(task.subtasks[0]);
     }
   };
 
-  const handleUpdateTask = (name: string) => {
-    const task = findTask(isEditingTask);
+  const handleUpdateTask = (oldTask: Task) => {
+    const task = findTask(oldTask.id);
     if (task) {
-      updateTask({ ...task, name });
+      updateTask({ ...oldTask });
     }
-    setIsEditingTask(0); // move to somewhere else
   };
 
-  const handleDeleteTask = (event: React.MouseEvent, taskId: number) => {
-    event.stopPropagation();
-
+  const handleDeleteTask = (taskId: number) => {
     deleteTask(taskId);
-    const isCurrentTaskSelected = selectedTask?.id === taskId;
-    // Update selected task and subtask if the deleted task was selected
-    if (isCurrentTaskSelected) {
+    if (selectedTask?.id === taskId) {
       setSelectedTask(null);
       setSelectedSubtask(null);
     }
@@ -108,7 +106,8 @@ const TaskManager: React.FC<TaskManagerProps> = ({
   const handleSelectTask = (taskId: number) => {
     const task = findTask(taskId);
     if (task) {
-      if (task.subtasks.length != 0) {
+      setSelectedTask(task);
+      if (task.subtasks.length !== 0) {
         setSelectedSubtask(task.subtasks[0]);
       } else {
         setSelectedSubtask(null);
@@ -116,110 +115,49 @@ const TaskManager: React.FC<TaskManagerProps> = ({
     }
   };
 
-  const handleUpdateTaskPomodoros = (
-    event: React.MouseEvent<HTMLSpanElement, MouseEvent>,
-    taskId: number,
-    pomodoros: number
-  ) => {
-    event?.stopPropagation();
-    const task = findTask(taskId);
-    if (task) {
-      const isCurrentTaskSelected = selectedTask?.id === taskId;
-      if (isCurrentTaskSelected) {
-        setSelectedTask(task);
-      }
-      updateTask({ ...task, pomodoros });
+  const handleSelectSubtask = (subTaskId: number) => {
+    const subtask = findSubtask(subTaskId);
+    if (subtask) {
+      setSelectedTask(findTask(subtask.taskId));
+      setSelectedSubtask(subtask);
     }
   };
 
-  const handleSubtaskPomodorosChange = (
-    event: React.MouseEvent<HTMLSpanElement, MouseEvent>,
-    subtaskId: number,
-    pomodoros: number
-  ) => {
-    event.stopPropagation();
+  const handleCreateSubtask = () => {
+    if (subtaskState.name.trim() === "") return; // TODO: add error message
+    if (selectedTask === null) return; // TODO: add error message
 
-    const subtask = findSubtask(subtaskId);
-    if (subtask != null) {
-      updateSubtask({ ...subtask, pomodoros });
-      const isCurrentSubtaskSelected = selectedSubtask?.id === subtaskId;
-      if (isCurrentSubtaskSelected) {
-        setSelectedSubtask(subtask);
-      }
-    }
-  };
-
-  const handleCreateSubtask = (taskId: number) => {
-    if (subtaskInput.trim() === "") return;
-
-    createSubtask(taskId, {
+    createSubtask(selectedTask.id, {
       id: Date.now(),
-      name: subtaskInput,
-      taskId,
-      pomodoros: 1,
+      name: subtaskState.name,
+      taskId: selectedTask.id,
+      pomodoros: subtaskState.pomodoros,
       completedPomodoros: 0,
       note: "",
     });
-    setSubtaskInput(""); // TODO: move it somewhere else
+    setSubtaskState({ ...subtaskState, name: "" });
   };
 
-  const handleDeleteSubtask = (event: React.MouseEvent, subTaskId: number) => {
-    event?.stopPropagation();
+  const handleDeleteSubtask = (subTaskId: number) => {
     deleteSubtask(subTaskId);
-    const isCurrentSubtaskSelected = selectedSubtask?.id === subTaskId;
-    if (isCurrentSubtaskSelected) {
+    if (selectedSubtask?.id === subTaskId) {
       setSelectedSubtask(null);
     }
   };
 
-  const handleSelectSubtask = (subTaskId: number) => {
-    const subtask = findSubtask(subTaskId);
+  const handleUpdateSubtask = (oldSubTask: Subtask) => {
+    const subtask = findSubtask(oldSubTask?.id);
     if (subtask) {
-      const task = findTask(subtask?.id);
-      setSelectedTask(task);
-      setSelectedSubtask(selectedSubtask);
-    }
-  };
-
-  const handleSubtaskEditing = (name: string) => {
-    const subtask = findSubtask(isEditingSubtask);
-    if (subtask) {
-      updateSubtask({ ...subtask, name });
-      setIsEditingSubtask(0); // Reset the editing state // TODO: move it somewhere else
-    }
-  };
-
-  const handleEditTaskKeyDown = (
-    event: React.KeyboardEvent<HTMLTextAreaElement>
-  ) => {
-    if (event.key === "Enter" && !event.shiftKey) {
-      event.preventDefault();
-      handleUpdateTask(taskNameInput);
-    }
-  };
-
-  const handleEditSubtaskKeyDown = (
-    event: React.KeyboardEvent<HTMLTextAreaElement>
-  ) => {
-    if (event.key === "Enter" && !event.shiftKey) {
-      event.preventDefault();
-      handleSubtaskEditing(subtaskNameInput);
+      updateSubtask({ ...oldSubTask });
     }
   };
 
   return (
     <div>
       <TaskInput
-        taskInput={taskInput}
-        pomodoros={pomodoros}
-        handlePomodorosInput={(e) => {
-          e.stopPropagation();
-          setPomodoros(pomodoros);
-        }}
-        handleTaskInputChange={(e) => setTaskInput(e.target.value)}
+        taskState={taskState}
+        setTaskState={setTaskState}
         addTask={handleCreateTask}
-        isTaskInputExpanded={isTaskInputExpanded}
-        setIsTaskInputExpanded={setIsTaskInputExpanded}
       />
       <ul className="space-y-4">
         {tasks.map((task) => (
@@ -227,52 +165,32 @@ const TaskManager: React.FC<TaskManagerProps> = ({
             key={task.id}
             task={task}
             selectedTask={selectedTask}
-            isEditingTask={isEditingTask}
-            taskNameInput={taskNameInput}
-            setTaskNameInput={setTaskNameInput}
-            handleUpdateTaskPomodoros={handleUpdateTaskPomodoros}
             handleUpdateTask={handleUpdateTask}
             handleSelectTask={handleSelectTask}
             handleDeleteTask={handleDeleteTask}
             startTimer={startTimer}
-            handleEditTaskKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault();
-                handleUpdateTask(taskNameInput);
-              }
-            }}
           >
-            <div>
-              {selectedTask?.id === task.id && (
-                <SubtaskInput
-                  subtaskInput={subtaskInput}
-                  handleSubtaskInputChange={(e) =>
-                    setSubtaskInput(e.target.value)
-                  }
-                  addSubtask={() => handleCreateSubtask(task.id)}
-                  taskId={task.id}
-                  handleAddSubtaskKeyDown={(event) => {}}
+            {selectedTask?.id === task.id && (
+              <SubtaskInput
+                subtaskState={subtaskState}
+                setSubtaskState={setSubtaskState}
+                handleCreateSubtask={handleCreateSubtask}
+              />
+            )}
+
+            <ul className="list-disc space-y-2">
+              {task.subtasks.map((subtask) => (
+                <SubtaskItem
+                  key={subtask.id}
+                  subtask={subtask}
+                  selectedSubtask={selectedSubtask}
+                  handleUpdateSubtask={handleUpdateSubtask}
+                  handleSelectSubtask={handleSelectSubtask}
+                  handleDeleteSubtask={handleDeleteSubtask}
+                  startTimer={startTimer}
                 />
-              )}
-              <ul className="list-disc space-y-2">
-                {task.subtasks.map((subtask) => (
-                  <SubtaskItem
-                    key={subtask.id}
-                    subtask={subtask}
-                    selectedSubtask={selectedSubtask}
-                    isEditingSubtask={isEditingSubtask}
-                    subtaskNameInput={subtaskNameInput}
-                    setSubtaskNameInput={setSubtaskNameInput}
-                    handleSubtaskPomodorosChange={handleSubtaskPomodorosChange}
-                    handleSubtaskEditing={handleSubtaskEditing}
-                    handleSelectSubtask={handleSelectSubtask}
-                    handleDeleteSubtask={handleDeleteSubtask}
-                    startTimer={startTimer}
-                    handleEditSubtaskKeyDown={handleEditSubtaskKeyDown}
-                  />
-                ))}
-              </ul>
-            </div>
+              ))}
+            </ul>
           </TaskItem>
         ))}
       </ul>

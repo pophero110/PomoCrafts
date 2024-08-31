@@ -7,14 +7,16 @@ import TabController from "./TabController";
 import RecordManager from "./RecordManager";
 import { Subtask, Task, TasksProvider } from "./hooks/TasksContext";
 
+export type Tab = "Task" | "Timer" | "Record";
+
 const App: React.FC = () => {
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [selectedSubtask, setSelectedSubtask] = useState<Subtask | null>(null);
-  const [activeTab, setActiveTab] = useState<string>("Task");
+  const [activeTab, setActiveTab] = useState<Tab>("Task");
   const [secondsElapsed, setSecondsElapsed] = useState<number>(0);
   const [isTimerRunning, setIsTimerRunning] = useState<boolean>(false);
 
-  const onTabChange = (tab: string) => {
+  const onTabChange = (tab: Tab) => {
     if (tab === "Timer") {
       if (!selectedTask && !selectedSubtask) {
         alert("Please select a task");

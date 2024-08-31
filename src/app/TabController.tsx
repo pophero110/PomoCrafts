@@ -1,9 +1,10 @@
 import React from "react";
+import { Tab } from "./page";
 
 interface PageSwitchProps {
-  tabs: string[];
+  tabs: Tab[];
   activeTab: string;
-  onTabChange: (tab: string) => void;
+  onTabChange: (tab: Tab) => void;
 }
 
 const TabController: React.FC<PageSwitchProps> = ({
