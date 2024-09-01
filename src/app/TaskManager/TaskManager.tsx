@@ -4,6 +4,7 @@ import TaskItem from "./TaskItem";
 import SubtaskItem from "./SubtaskItem";
 import { Task, Subtask, useTasks } from "../hooks/TasksContext";
 import SubtaskInput from "./SubtaskInput";
+import { Priority } from "../PriorityRating";
 
 interface TaskManagerProps {
   selectedTask: Task | null;
@@ -11,6 +12,18 @@ interface TaskManagerProps {
   selectedSubtask: Subtask | null;
   setSelectedSubtask: React.Dispatch<React.SetStateAction<Subtask | null>>;
   startTimer: () => void;
+}
+
+export interface TaskState {
+  name: string;
+  pomodoros: number;
+  priority: Priority;
+}
+
+export interface SubtaskState {
+  name: string;
+  pomodoros: number;
+  priority: Priority;
 }
 
 const TaskManager: React.FC<TaskManagerProps> = ({
@@ -33,14 +46,16 @@ const TaskManager: React.FC<TaskManagerProps> = ({
   } = useTasks();
 
   // Group related states together
-  const [taskState, setTaskState] = useState({
+  const [taskState, setTaskState] = useState<TaskState>({
     name: "",
     pomodoros: 1,
+    priority: "low",
   });
 
-  const [subtaskState, setSubtaskState] = useState({
+  const [subtaskState, setSubtaskState] = useState<SubtaskState>({
     name: "",
     pomodoros: 1,
+    priority: "low",
   });
 
   const handleCreateTask = () => {
@@ -53,6 +68,7 @@ const TaskManager: React.FC<TaskManagerProps> = ({
       id: Date.now(),
       name: mainTask.trim(),
       pomodoros: taskState.pomodoros,
+      priority: taskState.priority,
       completedPomodoros: 0,
       subtasks: [],
       note: "",
@@ -67,24 +83,27 @@ const TaskManager: React.FC<TaskManagerProps> = ({
           line.trim().startsWith("*") ||
           line.trim().startsWith("•")
       )
-      .map((line, index) => ({
-        id: index + 1,
-        taskId: task.id,
-        name: line.trim().slice(1).trim(),
-        pomodoros: 1,
-        completedPomodoros: 0,
-        note: "",
-      }));
+      .map(
+        (line, index): Subtask => ({
+          id: index + 1,
+          taskId: task.id,
+          name: line.trim().slice(1).trim(),
+          pomodoros: 1,
+          priority: "low",
+          completedPomodoros: 0,
+          note: "",
+        })
+      );
 
     task.subtasks = subtasks;
 
     createTask(task);
-    setTaskState({ ...taskState, name: "" });
     setSelectedTask(task);
-
     if (task.subtasks.length !== 0) {
       task.pomodoros = 0;
       setSelectedSubtask(task.subtasks[0]);
+    } else {
+      setSelectedSubtask(null);
     }
   };
 
@@ -127,14 +146,18 @@ const TaskManager: React.FC<TaskManagerProps> = ({
     if (subtaskState.name.trim() === "") return; // TODO: add error message
     if (selectedTask === null) return; // TODO: add error message
 
-    createSubtask(selectedTask.id, {
+    const subtask: Subtask = {
       id: Date.now(),
       name: subtaskState.name,
       taskId: selectedTask.id,
       pomodoros: subtaskState.pomodoros,
+      priority: subtaskState.priority,
       completedPomodoros: 0,
       note: "",
-    });
+    };
+
+    createSubtask(subtask);
+    setSelectedSubtask(subtask);
     setSubtaskState({ ...subtaskState, name: "" });
   };
 
@@ -165,25 +188,22 @@ const TaskManager: React.FC<TaskManagerProps> = ({
             key={task.id}
             task={task}
             selectedTask={selectedTask}
+            setTaskState={setTaskState}
             handleUpdateTask={handleUpdateTask}
             handleSelectTask={handleSelectTask}
             handleDeleteTask={handleDeleteTask}
             startTimer={startTimer}
           >
-            {selectedTask?.id === task.id && (
+            <ul className="list-disc space-y-2">
               <SubtaskInput
                 subtaskState={subtaskState}
                 setSubtaskState={setSubtaskState}
                 handleCreateSubtask={handleCreateSubtask}
               />
-            )}
-
-            <ul className="list-disc space-y-2">
-              {task.subtasks.map((subtask) => (
+              {task.subtasks.map((subtask: Subtask) => (
                 <SubtaskItem
                   key={subtask.id}
                   subtask={subtask}
-                  selectedSubtask={selectedSubtask}
                   handleUpdateSubtask={handleUpdateSubtask}
                   handleSelectSubtask={handleSelectSubtask}
                   handleDeleteSubtask={handleDeleteSubtask}

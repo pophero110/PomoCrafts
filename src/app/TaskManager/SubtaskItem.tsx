@@ -1,11 +1,10 @@
-import React, { KeyboardEvent, useRef, useState } from "react";
-import { FaPlay, FaTrash } from "react-icons/fa";
+import React, { useRef, useState } from "react";
+import { FaPen, FaPlay, FaTrash } from "react-icons/fa";
 import PomodorosRating from "../PomodorosRating";
 import { Subtask } from "../hooks/TasksContext";
 
 interface SubtaskItemProps {
   subtask: Subtask;
-  selectedSubtask: Subtask | null;
   handleUpdateSubtask: (oldSubTask: Subtask) => void;
   handleSelectSubtask: (subTaskId: number) => void;
   handleDeleteSubtask: (subtaskId: number) => void;
@@ -14,7 +13,6 @@ interface SubtaskItemProps {
 
 const SubtaskItem: React.FC<SubtaskItemProps> = ({
   subtask,
-  selectedSubtask,
   handleUpdateSubtask,
   handleSelectSubtask,
   handleDeleteSubtask,
@@ -42,7 +40,7 @@ const SubtaskItem: React.FC<SubtaskItemProps> = ({
     }
   };
 
-  const handleDoubleClick = (e: React.MouseEvent) => {
+  const handleEditingSubtask = (e: React.MouseEvent) => {
     e.stopPropagation();
     setEditingSubtask(subtask);
     setTimeout(() => subtaskNameInputRef.current?.focus(), 0);
@@ -51,54 +49,53 @@ const SubtaskItem: React.FC<SubtaskItemProps> = ({
   return (
     <li
       key={subtask.id}
-      className={`flex justify-between items-center bg-white shadow-md rounded-md p-4 transition-all duration-300 
-        ${
-          selectedSubtask?.id === subtask.id
-            ? "bg-blue-100 border-2 border-blue-500"
-            : "hover:bg-gray-100 hover:shadow-lg"
-        }`}
+      className={`flex justify-between items-center bg-white shadow-md rounded-md p-4 transition-all duration-300 hover:bg-gray-100`}
       onClick={(e) => {
         e.stopPropagation();
         handleSelectSubtask(subtask.id);
       }}
-      onDoubleClick={handleDoubleClick}
       onBlur={handleInputBlur}
     >
+      {editingSubtask != null ? (
+        <input
+          ref={subtaskNameInputRef}
+          id={`subtask-input-${subtask.id}`}
+          className="border-b-2 text-lg font-medium border-gray-200 bg-transparent shadow-sm focus:outline-none focus:border-gray-500"
+          value={editingSubtask.name}
+          onChange={(e) =>
+            setEditingSubtask({ ...editingSubtask, name: e.target.value })
+          }
+          onKeyDown={handleEditSubtaskKeyDown}
+        />
+      ) : (
+        <div className="flex space-x-2 items-center">
+          <span className="text-lg font-medium flex-grow truncate">
+            {subtask.name}
+          </span>
+          <FaPen
+            onClick={handleEditingSubtask}
+            className="text-gray-500 cursor-pointer hover:text-gray-600 w-4 h-4"
+          ></FaPen>
+        </div>
+      )}
       <div className="flex items-center space-x-4">
-        {editingSubtask != null ? (
-          <input
-            ref={subtaskNameInputRef}
-            id={`subtask-input-${subtask.id}`}
-            className="border w-full h-full border-gray-300 rounded-lg p-3 flex-grow resize-none shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            value={editingSubtask.name}
-            onChange={(e) =>
-              setEditingSubtask({ ...editingSubtask, name: e.target.value })
-            }
-            onKeyDown={handleEditSubtaskKeyDown}
+        <PomodorosRating
+          value={subtask.pomodoros}
+          completed={subtask.completedPomodoros}
+          onChange={(event, pomodoros) =>
+            handleUpdateSubtask({ ...subtask, pomodoros })
+          }
+        />
+        <div className="flex space-x-4">
+          <FaPlay
+            className="text-gray-500 hover:text-gray-600 w-6 h-6 cursor-pointer"
+            onClick={startTimer}
           />
-        ) : (
-          <span className="text-lg font-medium">{subtask.name}</span>
-        )}
-        <div className="flex items-center space-x-1">
-          <PomodorosRating
-            value={subtask.pomodoros}
-            completed={subtask.completedPomodoros}
-            onChange={(event, pomodoros) =>
-              setEditingSubtask({ ...subtask, pomodoros })
-            }
+          <FaTrash
+            className="text-gray-500 hover:text-gray-600 w-6 h-6 cursor-pointer"
+            onClick={(event) => handleDeleteSubtask(subtask.id)}
           />
         </div>
-      </div>
-
-      <div className="flex space-x-4">
-        <FaPlay
-          className="text-gray-500 hover:text-gray-600 w-6 h-6 cursor-pointer"
-          onClick={startTimer}
-        />
-        <FaTrash
-          className="text-gray-500 hover:text-gray-600 w-6 h-6 cursor-pointer"
-          onClick={(event) => handleDeleteSubtask(subtask.id)}
-        />
       </div>
     </li>
   );

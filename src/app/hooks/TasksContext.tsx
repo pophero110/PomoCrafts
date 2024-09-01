@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
+import { Priority } from "../PriorityRating";
 
 export interface Task {
   id: number;
@@ -7,6 +8,7 @@ export interface Task {
   completedPomodoros: number;
   subtasks: Subtask[];
   note: string;
+  priority: Priority;
 }
 
 export interface Subtask {
@@ -16,6 +18,7 @@ export interface Subtask {
   completedPomodoros: number;
   name: string;
   note: string;
+  priority: Priority;
 }
 
 interface TasksContextType {
@@ -23,7 +26,7 @@ interface TasksContextType {
   createTask: (newTask: Task) => void;
   updateTask: (updatedTask: Task) => void;
   deleteTask: (taskId: number) => void;
-  createSubtask: (taskId: number, newSubtask: Subtask) => void;
+  createSubtask: (subtask: Subtask) => void;
   updateSubtask: (updatedSubtask: Subtask) => void;
   deleteSubtask: (subtaskId: number) => void;
   findTask: (taskId: number) => Task | null;
@@ -61,11 +64,11 @@ export const TasksProvider: React.FC<{ children: React.ReactNode }> = ({
     setTasks((prevTasks) => prevTasks.filter((task) => task.id !== taskId));
   };
 
-  const createSubtask = (taskId: number, newSubtask: Subtask) => {
+  const createSubtask = (subtask: Subtask) => {
     setTasks((prevTasks) =>
       prevTasks.map((task) =>
-        task.id === taskId
-          ? { ...task, subtasks: [...task.subtasks, newSubtask] }
+        task.id === subtask.taskId
+          ? { ...task, subtasks: [...task.subtasks, subtask] }
           : task
       )
     );

@@ -4,6 +4,7 @@ import PomodorosRating from "../PomodorosRating";
 import { FaPlay, FaPause, FaStop } from "react-icons/fa";
 import CircularProgressBar from "./CircularProgressBar";
 import { Subtask, Task, useTasks } from "../hooks/TasksContext";
+import { Tab } from "../page";
 
 interface TimerProps {
   secondsElapsed: number;
@@ -14,6 +15,7 @@ interface TimerProps {
   setSelectedTask: React.Dispatch<React.SetStateAction<Task | null>>;
   selectedSubtask: Subtask | null;
   setSelectedSubtask: React.Dispatch<React.SetStateAction<Subtask | null>>;
+  setActiveTab: React.Dispatch<React.SetStateAction<Tab>>;
 }
 
 export default function Timer({
@@ -25,6 +27,7 @@ export default function Timer({
   setSelectedTask,
   selectedSubtask,
   setSelectedSubtask,
+  setActiveTab,
 }: TimerProps) {
   const { updateTask, updateSubtask } = useTasks();
   const intervalDuration = 3;
@@ -138,6 +141,7 @@ export default function Timer({
 
   return (
     <div className="flex flex-col items-center justify-between p-4 space-y-2 bg-white shadow-md rounded-md">
+      <button onClick={() => setActiveTab("Task")}>X</button>
       <div className="flex flex-col space-y-2">
         <CircularProgressBar
           secondsElapsed={secondsElapsed}

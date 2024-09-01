@@ -34,15 +34,15 @@ const App: React.FC = () => {
   return (
     <div className="min-h-screen flex flex-col overflow-y-auto">
       {/* Header */}
-      <header className="bg-gray-800 text-white py-4">
+      {/* <header className="bg-gray-800 text-white py-2">
         <div className="container mx-auto">
           <h1 className="text-2xl font-bold">PomoCrafts</h1>
         </div>
-      </header>
+      </header> */}
 
       <TasksProvider>
         {/* Main Content Area */}
-        <main className="container mx-auto flex-grow p-4">
+        <main className="container mx-auto">
           {/* Tab Controller */}
           <TabController
             tabs={["Task", "Timer", "Record"]}
@@ -71,6 +71,7 @@ const App: React.FC = () => {
                 setSelectedTask={setSelectedTask}
                 selectedSubtask={selectedSubtask}
                 setSelectedSubtask={setSelectedSubtask}
+                setActiveTab={setActiveTab}
               />
             )}
             {activeTab === "Record" && <RecordManager></RecordManager>}

@@ -2,13 +2,13 @@
 import React, { KeyboardEvent, useRef, useState } from "react";
 import { FaExpandAlt, FaCompressAlt, FaPlus } from "react-icons/fa";
 import PomodorosRating from "../PomodorosRating";
+import PriorityRating, { Priority } from "../PriorityRating";
+import { TaskState } from "./TaskManager";
 
 interface TaskInputProps {
   addTask: () => void;
-  taskState: { name: string; pomodoros: number };
-  setTaskState: React.Dispatch<
-    React.SetStateAction<{ name: string; pomodoros: number }>
-  >;
+  taskState: TaskState;
+  setTaskState: React.Dispatch<React.SetStateAction<TaskState>>;
 }
 
 const TaskInput: React.FC<TaskInputProps> = ({
@@ -53,6 +53,13 @@ const TaskInput: React.FC<TaskInputProps> = ({
           />
         )}
 
+        <PriorityRating
+          className={"absolute bottom-4 left-4"}
+          selectedPriority={taskState.priority}
+          onChange={(priority) => {
+            setTaskState({ ...taskState, priority });
+          }}
+        ></PriorityRating>
         <PomodorosRating
           value={taskState.pomodoros}
           onChange={(event, pomodoros) =>
