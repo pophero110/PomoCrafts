@@ -1,5 +1,5 @@
 "use client";
-import React, { ReactNode, SetStateAction, useRef, useState } from "react";
+import React, { ReactNode, useRef, useState } from "react";
 import {
   FaClock,
   FaCheckCircle,
@@ -16,7 +16,6 @@ import { TaskState } from "./TaskManager";
 interface TaskItemProps {
   task: Task;
   selectedTask: Task | null;
-  setTaskState: React.Dispatch<SetStateAction<TaskState>>;
   handleUpdateTask: (oldTask: Task) => void;
   handleSelectTask: (taskId: number) => void;
   handleDeleteTask: (taskId: number) => void;
@@ -27,7 +26,6 @@ interface TaskItemProps {
 const TaskItem: React.FC<TaskItemProps> = ({
   task,
   selectedTask,
-  setTaskState,
   handleUpdateTask,
   handleSelectTask,
   handleDeleteTask,
@@ -40,7 +38,7 @@ const TaskItem: React.FC<TaskItemProps> = ({
   const hasSubtask = task.subtasks.length != 0;
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (editingTaskState) {
-      setEditingTask({ ...editingTaskState, name: e.target.value });
+      setEditingTask({ ...editingTaskState, title: e.target.value });
     }
   };
 
@@ -66,12 +64,12 @@ const TaskItem: React.FC<TaskItemProps> = ({
 
   const totalRemainingPomodoros = task.subtasks.reduce(
     (total, subtask) =>
-      total + (subtask.pomodoros - subtask.completedPomodoros),
+      total + (subtask.pomodorosRequired - subtask.pomodorosCompleted),
     0
   );
 
   const totalCompletedPomodoros = task.subtasks.reduce(
-    (total, subtask) => total + subtask.completedPomodoros,
+    (total, subtask) => total + subtask.pomodorosCompleted,
     0
   );
 
@@ -100,7 +98,7 @@ const TaskItem: React.FC<TaskItemProps> = ({
               ref={taskNameInputRef}
               id={`task-input-${task.id}`}
               className="border-b-2 text-lg font-medium border-gray-200 bg-transparent shadow-sm focus:outline-none focus:border-gray-500"
-              value={editingTaskState.name}
+              value={editingTaskState.title}
               onChange={handleInputChange}
               onKeyDown={handleInputKeyDown}
             ></input>
@@ -113,7 +111,7 @@ const TaskItem: React.FC<TaskItemProps> = ({
           <div className="flex space-x-2 items-center">
             {priorityOptions[task.priority].icon}
             <span className="text-lg font-medium flex-grow truncate">
-              {task.name}
+              {task.title}
             </span>
             <FaPen
               onClick={handleEditingTask}
@@ -124,10 +122,10 @@ const TaskItem: React.FC<TaskItemProps> = ({
         <div className="flex items-center space-x-4">
           {!hasSubtask ? (
             <PomodorosRating
-              value={task.pomodoros}
-              completed={task.completedPomodoros}
+              value={task.pomodorosRequired}
+              completed={task.pomodorosCompleted}
               onChange={(event, pomodoros) =>
-                handleUpdateTask({ ...task, pomodoros })
+                handleUpdateTask({ ...task, pomodorosRequired: pomodoros })
               }
             />
           ) : (

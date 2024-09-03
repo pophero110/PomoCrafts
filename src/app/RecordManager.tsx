@@ -9,10 +9,11 @@ const RecordManager: React.FC<RecordManagerProps> = ({}) => {
   // Filter to get completed tasks
   const completedTasks = tasks.filter((task) => {
     const areAllSubtasksCompleted = task.subtasks.every(
-      (subtask) => subtask.pomodoros === subtask.completedPomodoros
+      (subtask) => subtask.pomodorosRequired === subtask.pomodorosCompleted
     );
     return (
-      task.pomodoros === task.completedPomodoros && areAllSubtasksCompleted
+      task.pomodorosRequired === task.pomodorosCompleted &&
+      areAllSubtasksCompleted
     );
   });
 
@@ -36,10 +37,11 @@ const RecordManager: React.FC<RecordManagerProps> = ({}) => {
               className="p-4 bg-white rounded shadow-md border border-gray-200"
             >
               <div className="flex justify-between items-center mb-2">
-                <span className="text-lg font-semibold">{task.name}</span>
+                <span className="text-lg font-semibold">{task.title}</span>
                 {task.subtasks.length == 0 && (
                   <span className="text-sm text-gray-600">
-                    Pomodoros: {task.completedPomodoros}/{task.pomodoros}
+                    Pomodoros: {task.pomodorosCompleted}/
+                    {task.pomodorosRequired}
                   </span>
                 )}
               </div>
@@ -56,11 +58,11 @@ const RecordManager: React.FC<RecordManagerProps> = ({}) => {
                 <div key={subtask.id}>
                   <div className="flex justify-between items-center">
                     <span className="text-md text-gray-800">
-                      {subtask.name}
+                      {subtask.title}
                     </span>
                     <span className="text-sm text-gray-600">
-                      Pomodoros: {subtask.completedPomodoros}/
-                      {subtask.pomodoros}
+                      Pomodoros: {subtask.pomodorosCompleted}/
+                      {subtask.pomodorosRequired}
                     </span>
                   </div>
                   <textarea

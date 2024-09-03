@@ -3,22 +3,22 @@ import { Priority } from "../PriorityRating";
 
 export interface Task {
   id: number;
-  name: string;
-  pomodoros: number;
-  completedPomodoros: number;
-  subtasks: Subtask[];
-  note: string;
+  title: string;
   priority: Priority;
+  subtasks: Subtask[];
+  pomodorosRequired: number;
+  pomodorosCompleted: number;
+  note: string;
 }
 
 export interface Subtask {
   id: number;
+  title: string;
   taskId: number;
-  pomodoros: number;
-  completedPomodoros: number;
-  name: string;
-  note: string;
   priority: Priority;
+  pomodorosRequired: number;
+  pomodorosCompleted: number;
+  note: string;
 }
 
 interface TasksContextType {

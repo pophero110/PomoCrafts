@@ -66,10 +66,10 @@ const TaskManager: React.FC<TaskManagerProps> = ({
 
     let task: Task = {
       id: Date.now(),
-      name: mainTask.trim(),
-      pomodoros: taskState.pomodoros,
+      title: mainTask.trim(),
+      pomodorosRequired: taskState.pomodoros,
       priority: taskState.priority,
-      completedPomodoros: 0,
+      pomodorosCompleted: 0,
       subtasks: [],
       note: "",
     };
@@ -87,10 +87,10 @@ const TaskManager: React.FC<TaskManagerProps> = ({
         (line, index): Subtask => ({
           id: index + 1,
           taskId: task.id,
-          name: line.trim().slice(1).trim(),
-          pomodoros: 1,
+          title: line.trim().slice(1).trim(),
+          pomodorosRequired: 1,
           priority: "low",
-          completedPomodoros: 0,
+          pomodorosCompleted: 0,
           note: "",
         })
       );
@@ -100,7 +100,7 @@ const TaskManager: React.FC<TaskManagerProps> = ({
     createTask(task);
     setSelectedTask(task);
     if (task.subtasks.length !== 0) {
-      task.pomodoros = 0;
+      task.pomodorosRequired = 0;
       setSelectedSubtask(task.subtasks[0]);
     } else {
       setSelectedSubtask(null);
@@ -148,11 +148,11 @@ const TaskManager: React.FC<TaskManagerProps> = ({
 
     const subtask: Subtask = {
       id: Date.now(),
-      name: subtaskState.name,
+      title: subtaskState.name,
       taskId: selectedTask.id,
-      pomodoros: subtaskState.pomodoros,
+      pomodorosRequired: subtaskState.pomodoros,
       priority: subtaskState.priority,
-      completedPomodoros: 0,
+      pomodorosCompleted: 0,
       note: "",
     };
 
@@ -188,7 +188,6 @@ const TaskManager: React.FC<TaskManagerProps> = ({
             key={task.id}
             task={task}
             selectedTask={selectedTask}
-            setTaskState={setTaskState}
             handleUpdateTask={handleUpdateTask}
             handleSelectTask={handleSelectTask}
             handleDeleteTask={handleDeleteTask}

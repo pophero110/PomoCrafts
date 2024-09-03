@@ -15,7 +15,6 @@ interface TimerProps {
   setSelectedTask: React.Dispatch<React.SetStateAction<Task | null>>;
   selectedSubtask: Subtask | null;
   setSelectedSubtask: React.Dispatch<React.SetStateAction<Subtask | null>>;
-  setActiveTab: React.Dispatch<React.SetStateAction<Tab>>;
 }
 
 export default function Timer({
@@ -27,7 +26,6 @@ export default function Timer({
   setSelectedTask,
   selectedSubtask,
   setSelectedSubtask,
-  setActiveTab,
 }: TimerProps) {
   const { updateTask, updateSubtask } = useTasks();
   const intervalDuration = 3;
@@ -50,14 +48,14 @@ export default function Timer({
       if (type === "task" && selectedTask) {
         const updatedTask = {
           ...selectedTask,
-          completedPomodoros: selectedTask.completedPomodoros + 1,
+          completedPomodoros: selectedTask.pomodorosCompleted + 1,
         };
         updateTask(updatedTask);
         setSelectedTask(updatedTask);
       } else if (type === "subtask" && selectedSubtask) {
         const updatedSubtask = {
           ...selectedSubtask,
-          completedPomodoros: selectedSubtask.completedPomodoros + 1,
+          completedPomodoros: selectedSubtask.pomodorosCompleted + 1,
         };
         updateSubtask(updatedSubtask);
         setSelectedSubtask(updatedSubtask);
@@ -115,9 +113,10 @@ export default function Timer({
   const handleStart = useCallback(() => {
     if (
       !selectedTask ||
-      selectedTask.pomodoros === selectedTask.completedPomodoros ||
+      selectedTask.pomodorosRequired === selectedTask.pomodorosCompleted ||
       (selectedSubtask &&
-        selectedSubtask.pomodoros === selectedSubtask.completedPomodoros)
+        selectedSubtask.pomodorosRequired ===
+          selectedSubtask.pomodorosCompleted)
     ) {
       alert("Task or subtask is completed");
       return;
@@ -141,17 +140,16 @@ export default function Timer({
 
   return (
     <div className="flex flex-col items-center justify-between p-4 space-y-2 bg-white shadow-md rounded-md">
-      <button onClick={() => setActiveTab("Task")}>X</button>
       <div className="flex flex-col space-y-2">
         <CircularProgressBar
           secondsElapsed={secondsElapsed}
           duration={intervalDuration}
-          caption={`I'm focusing on ${displayedTask.name}`}
+          caption={`I'm focusing on ${displayedTask.title}`}
           formattedTime={formatTime(secondsElapsed)}
         >
           <PomodorosRating
-            value={displayedTask.pomodoros}
-            completed={displayedTask.completedPomodoros}
+            value={displayedTask.pomodorosRequired}
+            completed={displayedTask.pomodorosCompleted}
             mode="Display"
             className="justify-center"
             onChange={() => {}}

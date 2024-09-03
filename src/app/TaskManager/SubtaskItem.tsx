@@ -61,16 +61,16 @@ const SubtaskItem: React.FC<SubtaskItemProps> = ({
           ref={subtaskNameInputRef}
           id={`subtask-input-${subtask.id}`}
           className="border-b-2 text-lg font-medium border-gray-200 bg-transparent shadow-sm focus:outline-none focus:border-gray-500"
-          value={editingSubtask.name}
+          value={editingSubtask.title}
           onChange={(e) =>
-            setEditingSubtask({ ...editingSubtask, name: e.target.value })
+            setEditingSubtask({ ...editingSubtask, title: e.target.value })
           }
           onKeyDown={handleEditSubtaskKeyDown}
         />
       ) : (
         <div className="flex space-x-2 items-center">
           <span className="text-lg font-medium flex-grow truncate">
-            {subtask.name}
+            {subtask.title}
           </span>
           <FaPen
             onClick={handleEditingSubtask}
@@ -80,10 +80,10 @@ const SubtaskItem: React.FC<SubtaskItemProps> = ({
       )}
       <div className="flex items-center space-x-4">
         <PomodorosRating
-          value={subtask.pomodoros}
-          completed={subtask.completedPomodoros}
+          value={subtask.pomodorosRequired}
+          completed={subtask.pomodorosCompleted}
           onChange={(event, pomodoros) =>
-            handleUpdateSubtask({ ...subtask, pomodoros })
+            handleUpdateSubtask({ ...subtask, pomodorosRequired: pomodoros })
           }
         />
         <div className="flex space-x-4">

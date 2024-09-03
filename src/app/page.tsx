@@ -2,12 +2,13 @@
 
 import React, { useState } from "react";
 import TaskManager from "./TaskManager/TaskManager";
-import Timer from "./Timer/Timer";
 import TabController from "./TabController";
 import RecordManager from "./RecordManager";
 import { Subtask, Task, TasksProvider } from "./hooks/TasksContext";
+import { PomodoroProvider } from "./hooks/PomodoroContext";
+import PomodorosManager from "./PomodoroManager/PomodoroManager";
 
-export type Tab = "Task" | "Timer" | "Record";
+export type Tab = "Task" | "Pomodoro" | "Record";
 
 const App: React.FC = () => {
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
@@ -17,7 +18,7 @@ const App: React.FC = () => {
   const [isTimerRunning, setIsTimerRunning] = useState<boolean>(false);
 
   const onTabChange = (tab: Tab) => {
-    if (tab === "Timer") {
+    if (tab === "Pomodoro") {
       if (!selectedTask && !selectedSubtask) {
         alert("Please select a task");
         return;
@@ -27,7 +28,7 @@ const App: React.FC = () => {
   };
 
   const startTimer = () => {
-    setActiveTab("Timer");
+    setActiveTab("Pomodoro");
     setIsTimerRunning(true);
   };
 
@@ -41,42 +42,51 @@ const App: React.FC = () => {
       </header> */}
 
       <TasksProvider>
-        {/* Main Content Area */}
-        <main className="container mx-auto">
-          {/* Tab Controller */}
-          <TabController
-            tabs={["Task", "Timer", "Record"]}
-            activeTab={activeTab}
-            onTabChange={onTabChange}
-          />
+        <PomodoroProvider>
+          {/* Main Content Area */}
+          <main className="container mx-auto">
+            {/* Tab Controller */}
+            <TabController
+              tabs={["Task", "Pomodoro", "Record"]}
+              activeTab={activeTab}
+              onTabChange={onTabChange}
+            />
 
-          {/* Dynamic Content Based on Active Tab */}
-          <div className="mt-6">
-            {activeTab === "Task" && (
-              <TaskManager
-                selectedTask={selectedTask}
-                setSelectedTask={setSelectedTask}
-                selectedSubtask={selectedSubtask}
-                setSelectedSubtask={setSelectedSubtask}
-                startTimer={startTimer}
-              />
-            )}
-            {activeTab === "Timer" && (
-              <Timer
-                secondsElapsed={secondsElapsed}
-                setSecondsElapsed={setSecondsElapsed}
-                isTimerRunning={isTimerRunning}
-                setIsTimerRunning={setIsTimerRunning}
-                selectedTask={selectedTask as Task} // a task must be selected
-                setSelectedTask={setSelectedTask}
-                selectedSubtask={selectedSubtask}
-                setSelectedSubtask={setSelectedSubtask}
-                setActiveTab={setActiveTab}
-              />
-            )}
-            {activeTab === "Record" && <RecordManager></RecordManager>}
-          </div>
-        </main>
+            {/* Dynamic Content Based on Active Tab */}
+            <div className="mt-6">
+              {activeTab === "Task" && (
+                <TaskManager
+                  selectedTask={selectedTask}
+                  setSelectedTask={setSelectedTask}
+                  selectedSubtask={selectedSubtask}
+                  setSelectedSubtask={setSelectedSubtask}
+                  startTimer={startTimer}
+                />
+              )}
+              {activeTab === "Pomodoro" && (
+                <PomodorosManager
+                  selectedTask={selectedTask as Task} // a task must be selected
+                  setSelectedTask={setSelectedTask}
+                  selectedSubtask={selectedSubtask}
+                  setSelectedSubtask={setSelectedSubtask}
+                  setActiveTab={setActiveTab}
+                ></PomodorosManager>
+                // <Timer
+                //   secondsElapsed={secondsElapsed}
+                //   setSecondsElapsed={setSecondsElapsed}
+                //   isTimerRunning={isTimerRunning}
+                //   setIsTimerRunning={setIsTimerRunning}
+                //   selectedTask={selectedTask as Task} // a task must be selected
+                //   setSelectedTask={setSelectedTask}
+                //   selectedSubtask={selectedSubtask}
+                //   setSelectedSubtask={setSelectedSubtask}
+                //   setActiveTab={setActiveTab}
+                // />
+              )}
+              {activeTab === "Record" && <RecordManager></RecordManager>}
+            </div>
+          </main>
+        </PomodoroProvider>
       </TasksProvider>
 
       {/* Footer */}
