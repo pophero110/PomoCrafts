@@ -4,16 +4,12 @@ interface CircularProgressBarProps {
   secondsElapsed: number;
   duration: number;
   formattedTime: string; // Pass formatted time as a prop to display in the center
-  caption: string; // Add caption prop to display below the formatted time
-  children: React.ReactNode;
 }
 
 const CircularProgressBar: React.FC<CircularProgressBarProps> = ({
   secondsElapsed,
   duration,
   formattedTime,
-  caption,
-  children,
 }) => {
   const radius = 180;
   const stroke = 20;
@@ -52,7 +48,7 @@ const CircularProgressBar: React.FC<CircularProgressBarProps> = ({
         {/* Text in the Center for Formatted Time */}
         <text
           x="50%"
-          y="45%" /* Adjust the Y position slightly up to make room for the caption */
+          y="50%" /* Adjust the Y position slightly up to make room for the caption */
           textAnchor="middle"
           dy=".3em"
           fontSize="48px"
@@ -61,21 +57,10 @@ const CircularProgressBar: React.FC<CircularProgressBarProps> = ({
         >
           {formattedTime}
         </text>
-        {/* Caption below the Formatted Time */}
-        <text
-          x="50%"
-          y="60%" /* Adjust the Y position to place below the formattedTime */
-          textAnchor="middle"
-          fontSize="20px"
-          fontWeight="normal"
-          fill="black"
-        >
-          {caption}
-        </text>
         {/* Render PomodorosRating above formattedTime */}
-        <foreignObject x="0" y="65%" width="100%" height="30">
+        {/* <foreignObject x="0" y="65%" width="100%" height="30">
           <div className="flex justify-center items-center">{children}</div>
-        </foreignObject>
+        </foreignObject> */}
       </svg>
     </div>
   );

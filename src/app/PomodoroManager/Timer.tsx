@@ -3,38 +3,36 @@ import ticking from "./ticking";
 import PomodorosRating from "../PomodorosRating";
 import { FaPlay, FaPause, FaStop } from "react-icons/fa";
 import CircularProgressBar from "./CircularProgressBar";
-import { Subtask, Task, useTasks } from "../hooks/TasksContext";
-import { Tab } from "../page";
+import { Subtask, Task } from "../hooks/TasksContext";
+import { Pomodoro } from "../hooks/PomodoroContext";
 
 interface TimerProps {
+  pomodoro: Pomodoro;
+  task: Task | Subtask;
   secondsElapsed: number;
   setSecondsElapsed: React.Dispatch<React.SetStateAction<number>>;
+  handleCompletePomodoro: () => void;
+  handleStartPomodoro: () => void;
+  handleInterruptPomodoro: () => void;
+  handleCancelPomodoro: () => void;
   isTimerRunning: boolean;
-  setIsTimerRunning: React.Dispatch<React.SetStateAction<boolean>>;
-  selectedTask: Task;
-  setSelectedTask: React.Dispatch<React.SetStateAction<Task | null>>;
-  selectedSubtask: Subtask | null;
-  setSelectedSubtask: React.Dispatch<React.SetStateAction<Subtask | null>>;
 }
 
 export default function Timer({
+  pomodoro,
+  task,
   secondsElapsed,
   setSecondsElapsed,
+  handleStartPomodoro,
+  handleCancelPomodoro,
+  handleCompletePomodoro,
+  handleInterruptPomodoro,
   isTimerRunning,
-  setIsTimerRunning,
-  selectedTask,
-  setSelectedTask,
-  selectedSubtask,
-  setSelectedSubtask,
 }: TimerProps) {
-  const { updateTask, updateSubtask } = useTasks();
-  const intervalDuration = 3;
-  const displayedTask = selectedSubtask || selectedTask;
-
   const pomodoroSound = new Audio(ticking);
   pomodoroSound.loop = true;
 
-  const handleSound = (play: boolean) => {
+  const handleTickSound = (play: boolean) => {
     if (play) {
       pomodoroSound.play();
     } else {
@@ -43,46 +41,16 @@ export default function Timer({
     }
   };
 
-  const handleCompletion = useCallback(
-    (type: "task" | "subtask") => {
-      if (type === "task" && selectedTask) {
-        const updatedTask = {
-          ...selectedTask,
-          completedPomodoros: selectedTask.pomodorosCompleted + 1,
-        };
-        updateTask(updatedTask);
-        setSelectedTask(updatedTask);
-      } else if (type === "subtask" && selectedSubtask) {
-        const updatedSubtask = {
-          ...selectedSubtask,
-          completedPomodoros: selectedSubtask.pomodorosCompleted + 1,
-        };
-        updateSubtask(updatedSubtask);
-        setSelectedSubtask(updatedSubtask);
-      }
-    },
-    [selectedTask, selectedSubtask, updateTask, updateSubtask]
-  );
-
   useEffect(() => {
-    const handleTimerComplete = () => {
-      setIsTimerRunning(false);
-      if (selectedSubtask) {
-        handleCompletion("subtask");
-      } else if (selectedTask) {
-        handleCompletion("task");
-      }
-    };
-
-    handleSound(isTimerRunning);
+    handleTickSound(isTimerRunning);
 
     if (!isTimerRunning) return;
 
     const interval = setInterval(() => {
       setSecondsElapsed((prev) => {
-        if (prev >= intervalDuration) {
+        if (prev >= pomodoro.durationInSeconds) {
           clearInterval(interval);
-          handleTimerComplete();
+          handleCompletePomodoro();
           return 0;
         }
         return prev + 1;
@@ -91,15 +59,9 @@ export default function Timer({
 
     return () => {
       clearInterval(interval);
-      handleSound(false);
+      handleTickSound(false);
     };
-  }, [
-    isTimerRunning,
-    intervalDuration,
-    selectedTask,
-    selectedSubtask,
-    handleCompletion,
-  ]);
+  }, [isTimerRunning, task, pomodoro]);
 
   const formatTime = useCallback((totalSeconds: number) => {
     const minutes = Math.floor(totalSeconds / 60);
@@ -110,69 +72,48 @@ export default function Timer({
     )}`;
   }, []);
 
-  const handleStart = useCallback(() => {
-    if (
-      !selectedTask ||
-      selectedTask.pomodorosRequired === selectedTask.pomodorosCompleted ||
-      (selectedSubtask &&
-        selectedSubtask.pomodorosRequired ===
-          selectedSubtask.pomodorosCompleted)
-    ) {
-      alert("Task or subtask is completed");
-      return;
-    }
-    setIsTimerRunning(true);
-  }, [selectedTask, selectedSubtask]);
-
-  const handlePause = useCallback(() => {
-    setIsTimerRunning(false);
-    handleSound(false);
-  }, []);
-
-  const handleCancel = useCallback(() => {
-    if (
-      window.confirm("Are you sure you want to cancel the current Pomodoro?")
-    ) {
-      setIsTimerRunning(false);
-      setSecondsElapsed(0);
-    }
-  }, []);
-
   return (
-    <div className="flex flex-col items-center justify-between p-4 space-y-2 bg-white shadow-md rounded-md">
+    <div className="flex flex-col items-center justify-between space-y-2">
       <div className="flex flex-col space-y-2">
         <CircularProgressBar
           secondsElapsed={secondsElapsed}
-          duration={intervalDuration}
-          caption={`I'm focusing on ${displayedTask.title}`}
+          duration={pomodoro.durationInSeconds}
           formattedTime={formatTime(secondsElapsed)}
-        >
-          <PomodorosRating
-            value={displayedTask.pomodorosRequired}
-            completed={displayedTask.pomodorosCompleted}
-            mode="Display"
-            className="justify-center"
-            onChange={() => {}}
-          ></PomodorosRating>
-        </CircularProgressBar>
+        ></CircularProgressBar>
       </div>
       <div className="flex justify-center space-x-8">
         {isTimerRunning ? (
-          <FaPause
-            className="text-blue-500 w-14 h-14 cursor-pointer hover:text-blue-600"
-            onClick={handlePause}
-          />
+          <button
+            className="text-blue-500 hover:text-blue-600"
+            onClick={() => {
+              handleInterruptPomodoro();
+              handleTickSound(false);
+            }}
+          >
+            <FaPause className={`w-14 h-14`} />
+          </button>
         ) : (
-          <FaPlay
-            className="text-blue-500 w-14 h-14 cursor-pointer hover:text-blue-600"
-            onClick={handleStart}
-          />
+          <button
+            className="text-blue-500 hover:text-blue-600"
+            onClick={handleStartPomodoro}
+            disabled={task.pomodorosRequired === task.pomodorosCompleted} // Disables button when the timer is running
+          >
+            <FaPlay
+              className={`w-14 h-14 ${
+                task.pomodorosRequired === task.pomodorosCompleted
+                  ? "text-gray-500"
+                  : ""
+              }`}
+            />
+          </button>
         )}
         {isTimerRunning && (
-          <FaStop
-            className="text-blue-500 hover:text-blue-600 w-14 h-14 cursor-pointer"
-            onClick={handleCancel}
-          />
+          <button
+            className="text-blue-500 hover:text-blue-600"
+            onClick={handleCancelPomodoro}
+          >
+            <FaStop className={`w-14 h-14`} />
+          </button>
         )}
       </div>
     </div>

@@ -14,8 +14,6 @@ const App: React.FC = () => {
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [selectedSubtask, setSelectedSubtask] = useState<Subtask | null>(null);
   const [activeTab, setActiveTab] = useState<Tab>("Task");
-  const [secondsElapsed, setSecondsElapsed] = useState<number>(0);
-  const [isTimerRunning, setIsTimerRunning] = useState<boolean>(false);
 
   const onTabChange = (tab: Tab) => {
     if (tab === "Pomodoro") {
@@ -29,7 +27,6 @@ const App: React.FC = () => {
 
   const startTimer = () => {
     setActiveTab("Pomodoro");
-    setIsTimerRunning(true);
   };
 
   return (

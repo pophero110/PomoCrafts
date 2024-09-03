@@ -8,7 +8,7 @@ export interface Break {
 }
 
 export interface Pomodoro {
-  workDuration: number;
+  durationInSeconds: number;
   pomodorosCompleted: number;
   break: Break;
 }
@@ -21,7 +21,7 @@ interface PomodoroContextState {
 
 // Initial State
 const initialPomodoro: Pomodoro = {
-  workDuration: 25, // default work duration in minutes
+  durationInSeconds: 2,
   pomodorosCompleted: 0,
   break: {
     shortBreakDuration: 5,
