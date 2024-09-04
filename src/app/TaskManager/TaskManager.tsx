@@ -107,10 +107,10 @@ const TaskManager: React.FC<TaskManagerProps> = ({
     }
   };
 
-  const handleUpdateTask = (oldTask: Task) => {
-    const task = findTask(oldTask.id);
-    if (task) {
-      updateTask({ ...oldTask });
+  const handleUpdateTask = (task: Task) => {
+    const oldTask = findTask(task.id);
+    if (oldTask) {
+      updateTask({ ...task });
     }
   };
 
@@ -194,21 +194,22 @@ const TaskManager: React.FC<TaskManagerProps> = ({
             startTimer={startTimer}
           >
             <ul className="list-disc space-y-2">
-              <SubtaskInput
-                subtaskState={subtaskState}
-                setSubtaskState={setSubtaskState}
-                handleCreateSubtask={handleCreateSubtask}
-              />
               {task.subtasks.map((subtask: Subtask) => (
                 <SubtaskItem
                   key={subtask.id}
                   subtask={subtask}
+                  selectedSubtask={selectedSubtask}
                   handleUpdateSubtask={handleUpdateSubtask}
                   handleSelectSubtask={handleSelectSubtask}
                   handleDeleteSubtask={handleDeleteSubtask}
                   startTimer={startTimer}
                 />
               ))}
+              <SubtaskInput
+                subtaskState={subtaskState}
+                setSubtaskState={setSubtaskState}
+                handleCreateSubtask={handleCreateSubtask}
+              />
             </ul>
           </TaskItem>
         ))}

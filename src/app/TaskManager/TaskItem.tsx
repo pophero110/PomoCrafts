@@ -7,11 +7,11 @@ import {
   FaTrash,
   FaPen,
   FaCheck,
+  FaListUl,
 } from "react-icons/fa";
 import PomodorosRating from "../PomodorosRating";
 import { Task } from "../hooks/TasksContext";
 import PriorityRating, { priorityOptions } from "../PriorityRating";
-import { TaskState } from "./TaskManager";
 
 interface TaskItemProps {
   task: Task;
@@ -76,15 +76,19 @@ const TaskItem: React.FC<TaskItemProps> = ({
   return (
     <li
       key={task.id}
-      className="flex flex-col space-y-2 bg-gray-200 shadow-md rounded-md p-1 transition-all duration-300"
+      // className="flex flex-col space-y-2 bg-gray-200 shadow-md rounded-md p-1 transition-all duration-300"
+      className={`flex flex-col space-y-2 bg-gray-200 shadow-md rounded-md p-1 transition-all duration-300 ${
+        isSelected ? "border-2 border-gray-500" : ""
+      }`}
       onClick={() => handleSelectTask(task.id)}
     >
       <div
-        className={`flex justify-between items-center bg-white shadow-md rounded-md p-4 transition-all duration-300 ${
-          isSelected
-            ? "bg-blue-100 border-2 border-blue-500"
-            : "hover:bg-gray-100 hover:shadow-lg"
-        }`}
+        className={`flex justify-between items-center bg-white shadow-md rounded-md p-4 transition-all duration-300 
+          ${
+            isSelected && !hasSubtask
+              ? "bg-blue-100 border-2 border-blue-500"
+              : "hover:bg-gray-100 hover:shadow-lg"
+          }`}
       >
         {editingTaskState ? (
           <div className="flex space-x-2 items-center">
@@ -102,10 +106,15 @@ const TaskItem: React.FC<TaskItemProps> = ({
               onChange={handleInputChange}
               onKeyDown={handleInputKeyDown}
             ></input>
-            <FaCheck
-              onClick={handleEditingTaskComplete}
-              className="text-gray-500 cursor-pointer hover:text-gray-600 w-4 h-4"
-            ></FaCheck>
+            {!hasSubtask && (
+              <PomodorosRating
+                value={editingTaskState.pomodorosRequired}
+                completed={editingTaskState.pomodorosCompleted}
+                onChange={(event, pomodoros) =>
+                  setEditingTask({ ...task, pomodorosRequired: pomodoros })
+                }
+              />
+            )}
           </div>
         ) : (
           <div className="flex space-x-2 items-center">
@@ -113,32 +122,39 @@ const TaskItem: React.FC<TaskItemProps> = ({
             <span className="text-lg font-medium flex-grow truncate">
               {task.title}
             </span>
-            <FaPen
-              onClick={handleEditingTask}
-              className="text-gray-500 cursor-pointer hover:text-gray-600 w-4 h-4"
-            ></FaPen>
+            {!hasSubtask ? (
+              <PomodorosRating
+                mode="Display"
+                value={task.pomodorosRequired}
+                completed={task.pomodorosCompleted}
+                onChange={() => {}}
+              />
+            ) : (
+              <div className="flex items-center space-x-2">
+                <FaClock className="text-red-500 w-6 h-6" />
+                <span className="font-semibold">{totalRemainingPomodoros}</span>
+                <FaCheckCircle className="text-green-500 w-6 h-6" />
+                <span className="font-semibold">{totalCompletedPomodoros}</span>
+              </div>
+            )}
           </div>
         )}
         <div className="flex items-center space-x-4">
-          {!hasSubtask ? (
-            <PomodorosRating
-              value={task.pomodorosRequired}
-              completed={task.pomodorosCompleted}
-              onChange={(event, pomodoros) =>
-                handleUpdateTask({ ...task, pomodorosRequired: pomodoros })
-              }
-            />
+          {editingTaskState ? (
+            <FaCheck
+              onClick={handleEditingTaskComplete}
+              className="text-green-500 cursor-pointer hover:text-green-600 w-6 h-6"
+            ></FaCheck>
           ) : (
-            <div className="flex items-center space-x-2">
-              <FaClock className="text-red-500 w-6 h-6" />
-              <span className="font-semibold">{totalRemainingPomodoros}</span>
-              <FaCheckCircle className="text-green-500 w-6 h-6" />
-              <span className="font-semibold">{totalCompletedPomodoros}</span>
-            </div>
+            <FaPen
+              onClick={handleEditingTask}
+              className="text-blue-500 cursor-pointer hover:text-blue-600 w-6 h-6"
+            ></FaPen>
           )}
+
           {!hasSubtask && (
             <FaPlay
-              className="text-gray-500 hover:text-gray-600 w-6 h-6 cursor-pointer"
+              className="text-blue-500 hover:text-blue-600 w-6 h-6 cursor-pointer"
               onClick={startTimer}
             />
           )}
