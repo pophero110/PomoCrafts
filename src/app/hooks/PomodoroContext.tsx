@@ -2,8 +2,8 @@ import React, { createContext, useContext, useState, ReactNode } from "react";
 
 // Interfaces
 export interface Break {
-  shortBreakDuration: number;
-  longBreakDuration: number;
+  shortBreakDurationInSeconds: number;
+  longBreakDurationInSeconds: number;
   longBreakInterval: number;
 }
 
@@ -21,11 +21,11 @@ interface PomodoroContextState {
 
 // Initial State
 const initialPomodoro: Pomodoro = {
-  durationInSeconds: 2,
+  durationInSeconds: 1500,
   pomodorosCompleted: 0,
   break: {
-    shortBreakDuration: 5,
-    longBreakDuration: 15,
+    shortBreakDurationInSeconds: 300,
+    longBreakDurationInSeconds: 900,
     longBreakInterval: 4,
   },
 };

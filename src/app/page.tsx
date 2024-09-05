@@ -7,8 +7,9 @@ import RecordManager from "./RecordManager";
 import { Subtask, Task, TasksProvider } from "./hooks/TasksContext";
 import { PomodoroProvider } from "./hooks/PomodoroContext";
 import PomodorosManager from "./PomodoroManager/PomodoroManager";
+import SettingsManagner from "./SettingsManager";
 
-export type Tab = "Task" | "Pomodoro" | "Record";
+export type Tab = "Task" | "Pomodoro" | "Record" | "Setting";
 
 const App: React.FC = () => {
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
@@ -44,7 +45,7 @@ const App: React.FC = () => {
           <main className="container mx-auto p-2">
             {/* Tab Controller */}
             <TabController
-              tabs={["Task", "Pomodoro", "Record"]}
+              tabs={["Task", "Pomodoro", "Record", "Setting"]}
               activeTab={activeTab}
               onTabChange={onTabChange}
             />
@@ -81,6 +82,7 @@ const App: React.FC = () => {
                 // />
               )}
               {activeTab === "Record" && <RecordManager></RecordManager>}
+              {activeTab === "Setting" && <SettingsManagner></SettingsManagner>}
             </div>
           </main>
         </PomodoroProvider>
