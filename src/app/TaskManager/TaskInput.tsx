@@ -2,7 +2,7 @@
 import React, { KeyboardEvent, useRef, useState } from "react";
 import { FaExpandAlt, FaCompressAlt, FaPlus } from "react-icons/fa";
 import PomodorosRating from "../PomodorosRating";
-import PriorityRating, { Priority } from "../PriorityRating";
+import PriorityRating from "../PriorityRating";
 import { TaskState } from "./TaskManager";
 
 interface TaskInputProps {
