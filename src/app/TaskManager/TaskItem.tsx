@@ -76,7 +76,6 @@ const TaskItem: React.FC<TaskItemProps> = ({
   return (
     <li
       key={task.id}
-      // className="flex flex-col space-y-2 bg-gray-200 shadow-md rounded-md p-1 transition-all duration-300"
       className={`flex flex-col space-y-2 bg-gray-200 shadow-md rounded-md p-1 transition-all duration-300 ${
         isSelected ? "border-2 border-gray-500" : ""
       }`}
@@ -101,7 +100,7 @@ const TaskItem: React.FC<TaskItemProps> = ({
             <input
               ref={taskNameInputRef}
               id={`task-input-${task.id}`}
-              className="border-b-2 text-lg font-medium border-gray-200 bg-transparent shadow-sm focus:outline-none focus:border-gray-500"
+              className="border-b-2 text-lg font-medium max-w-16 border-gray-200 bg-transparent focus:outline-none focus:border-gray-500"
               value={editingTaskState.title}
               onChange={handleInputChange}
               onKeyDown={handleInputKeyDown}
@@ -119,7 +118,7 @@ const TaskItem: React.FC<TaskItemProps> = ({
         ) : (
           <div className="flex space-x-2 items-center">
             {priorityOptions[task.priority].icon}
-            <span className="text-lg font-medium flex-grow truncate">
+            <span className="text-lg font-medium max-w-24 truncate">
               {task.title}
             </span>
             {!hasSubtask ? (

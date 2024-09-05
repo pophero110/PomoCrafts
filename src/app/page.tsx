@@ -41,7 +41,7 @@ const App: React.FC = () => {
       <TasksProvider>
         <PomodoroProvider>
           {/* Main Content Area */}
-          <main className="container mx-auto">
+          <main className="container mx-auto p-2">
             {/* Tab Controller */}
             <TabController
               tabs={["Task", "Pomodoro", "Record"]}

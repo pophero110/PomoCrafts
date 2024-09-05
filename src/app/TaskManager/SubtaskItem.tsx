@@ -63,11 +63,11 @@ const SubtaskItem: React.FC<SubtaskItemProps> = ({
       }}
     >
       {editingSubtask != null ? (
-        <div className={`flex justify-between items-center bg-white shadow-md`}>
+        <div className={`flex justify-between items-center`}>
           <input
             ref={subtaskNameInputRef}
             id={`subtask-input-${subtask.id}`}
-            className="border-b-2 text-lg font-medium border-gray-200 bg-transparent shadow-sm focus:outline-none focus:border-gray-500"
+            className="border-b-2 text-lg font-medium max-w-24 border-gray-200 bg-transparent focus:outline-none focus:border-gray-500"
             value={editingSubtask.title}
             onChange={(e) =>
               setEditingSubtask({ ...editingSubtask, title: e.target.value })
@@ -87,7 +87,7 @@ const SubtaskItem: React.FC<SubtaskItemProps> = ({
         </div>
       ) : (
         <div className="flex space-x-2 items-center">
-          <span className="text-lg font-medium flex-grow truncate">
+          <span className="text-lg font-medium max-w-24 truncate">
             {subtask.title}
           </span>
           <PomodorosRating

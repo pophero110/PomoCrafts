@@ -65,7 +65,7 @@ const PomodorosManager: React.FC<PomodorosManagerProps> = ({
   const task = selectedSubtask || selectedTask;
 
   return (
-    <div className="flex flex-col items-center bg-gray-50 p-2">
+    <div className="flex flex-col items-center p-2">
       <div className="flex flex-col space-y-2">
         <h1 className="text-center text-2xl font-bold">
           <span className="block text-gray-500">I&apos;m focusing on</span>
