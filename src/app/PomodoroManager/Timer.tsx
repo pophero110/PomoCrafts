@@ -1,6 +1,5 @@
 import { useEffect, useCallback } from "react";
 import ticking from "./ticking";
-import PomodorosRating from "../PomodorosRating";
 import { FaPlay, FaPause, FaStop } from "react-icons/fa";
 import CircularProgressBar from "./CircularProgressBar";
 import { Subtask, Task } from "../hooks/TasksContext";
@@ -9,20 +8,22 @@ import { Pomodoro } from "../hooks/PomodoroContext";
 interface TimerProps {
   pomodoro: Pomodoro;
   task: Task | Subtask;
-  secondsElapsed: number;
-  setSecondsElapsed: React.Dispatch<React.SetStateAction<number>>;
+  pomodoroSecondsElapsed: number;
+  setPomodoroSecondsElapsed: React.Dispatch<React.SetStateAction<number>>;
   handleCompletePomodoro: () => void;
   handleStartPomodoro: () => void;
   handleInterruptPomodoro: () => void;
   handleCancelPomodoro: () => void;
   isTimerRunning: boolean;
+  mode: "pomodoro" | "shortBreak" | "longBreak";
 }
 
 export default function Timer({
+  mode,
   pomodoro,
   task,
-  secondsElapsed,
-  setSecondsElapsed,
+  pomodoroSecondsElapsed,
+  setPomodoroSecondsElapsed,
   handleStartPomodoro,
   handleCancelPomodoro,
   handleCompletePomodoro,
@@ -47,9 +48,10 @@ export default function Timer({
     if (!isTimerRunning) return;
 
     const interval = setInterval(() => {
-      setSecondsElapsed((prev) => {
-        if (prev >= pomodoro.durationInSeconds) {
+      setPomodoroSecondsElapsed((prev) => {
+        if (prev === pomodoro.durationInSeconds) {
           clearInterval(interval);
+          console.log("Timer completed");
           handleCompletePomodoro();
           return 0;
         }
@@ -61,7 +63,7 @@ export default function Timer({
       clearInterval(interval);
       handleTickSound(false);
     };
-  }, [isTimerRunning, task, pomodoro]);
+  }, [isTimerRunning, pomodoro]);
 
   const formatTime = useCallback((totalSeconds: number) => {
     const minutes = Math.floor(totalSeconds / 60);
@@ -76,9 +78,10 @@ export default function Timer({
     <div className="flex flex-col items-center justify-between space-y-2">
       <div className="flex flex-col space-y-2">
         <CircularProgressBar
-          secondsElapsed={secondsElapsed}
-          duration={pomodoro.durationInSeconds}
-          formattedTime={formatTime(secondsElapsed)}
+          mode={mode}
+          pomodoro={pomodoro}
+          secondsElapsed={pomodoroSecondsElapsed}
+          formattedTime={formatTime(pomodoroSecondsElapsed)}
         ></CircularProgressBar>
       </div>
       <div className="flex justify-center space-x-8">

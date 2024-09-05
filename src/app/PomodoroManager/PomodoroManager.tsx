@@ -19,14 +19,16 @@ const PomodorosManager: React.FC<PomodorosManagerProps> = ({
   selectedSubtask,
   setSelectedSubtask,
 }) => {
-  const { pomodoro } = usePomodoro();
+  const { pomodoro, setPomodoro } = usePomodoro();
   const { updateTask, updateSubtask } = useTasks();
-  const [secondsElapsed, setSecondsElapsed] = useState(0);
-  const [isTimerRunning, setIsTimerRunning] = useState(false);
+  const [mode, setMode] = useState<"pomodoro" | "shortBreak" | "longBreak">(
+    "pomodoro"
+  );
+  const [pomodoroSecondsElapsed, setPomodoroSecondsElapsed] = useState(0);
+  const [isPomodoroRunning, setIsPomodoroRunning] = useState(false);
 
   const handleCompletePomodoro = () => {
-    setIsTimerRunning(false);
-
+    setIsPomodoroRunning(false);
     if (selectedSubtask) {
       const updatedSubtask = {
         ...selectedSubtask,
@@ -44,21 +46,27 @@ const PomodorosManager: React.FC<PomodorosManagerProps> = ({
     } else {
       console.log("No selected task", { selectedTask, selectedSubtask });
     }
-    console.log("Pomodoro Completed", { selectedTask, selectedSubtask });
+    const isLongBreak =
+      pomodoro.pomodorosCompleted % pomodoro.break.longBreakInterval === 0;
+    setMode(isLongBreak ? "longBreak" : "shortBreak");
+    setPomodoro({
+      ...pomodoro,
+      pomodorosCompleted: pomodoro.pomodorosCompleted + 1,
+    });
   };
 
   const handleStartPomodoro = () => {
-    setIsTimerRunning(true);
+    setIsPomodoroRunning(true);
   };
   const handleInterruptPomodoro = () => {
-    setIsTimerRunning(false);
+    setIsPomodoroRunning(false);
   };
   const handleCancelPomodoro = () => {
     if (
       window.confirm("Are you sure you want to cancel the current Pomodoro?")
     ) {
-      setIsTimerRunning(false);
-      setSecondsElapsed(0);
+      setIsPomodoroRunning(false);
+      setPomodoroSecondsElapsed(0);
     }
   };
 
@@ -86,9 +94,10 @@ const PomodorosManager: React.FC<PomodorosManagerProps> = ({
         handleStartPomodoro={handleStartPomodoro}
         handleInterruptPomodoro={handleInterruptPomodoro}
         handleCancelPomodoro={handleCancelPomodoro}
-        secondsElapsed={secondsElapsed}
-        setSecondsElapsed={setSecondsElapsed}
-        isTimerRunning={isTimerRunning}
+        pomodoroSecondsElapsed={pomodoroSecondsElapsed}
+        setPomodoroSecondsElapsed={setPomodoroSecondsElapsed}
+        isTimerRunning={isPomodoroRunning}
+        mode={mode}
       />
     </div>
   );

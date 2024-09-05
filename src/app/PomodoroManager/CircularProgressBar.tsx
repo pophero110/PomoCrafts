@@ -1,14 +1,17 @@
 import React from "react";
+import { Pomodoro } from "../hooks/PomodoroContext";
 
 interface CircularProgressBarProps {
+  pomodoro: Pomodoro;
+  mode: "pomodoro" | "shortBreak" | "longBreak";
   secondsElapsed: number;
-  duration: number;
   formattedTime: string; // Pass formatted time as a prop to display in the center
 }
 
 const CircularProgressBar: React.FC<CircularProgressBarProps> = ({
+  pomodoro,
+  mode,
   secondsElapsed,
-  duration,
   formattedTime,
 }) => {
   const radius = 180;
@@ -16,15 +19,38 @@ const CircularProgressBar: React.FC<CircularProgressBarProps> = ({
   const normalizedRadius = radius - stroke * 2;
   const circumference = normalizedRadius * 2 * Math.PI;
 
-  const progress = (secondsElapsed / duration) * circumference;
+  // Calculate progress
+  const progress =
+    (secondsElapsed /
+      (mode === "pomodoro"
+        ? pomodoro.durationInSeconds
+        : mode === "shortBreak"
+        ? pomodoro.break.shortBreakDurationInSeconds
+        : pomodoro.break.longBreakDurationInSeconds)) *
+    circumference;
+
+  // Define colors based on mode
+  const getColor = () => {
+    switch (mode) {
+      case "pomodoro":
+        return "rgba(34, 197, 94, 1)"; // Green for Pomodoro
+      case "shortBreak":
+        return "rgba(249, 115, 22, 1)"; // Orange for Short Break
+      case "longBreak":
+        return "rgba(59, 130, 246, 1)"; // Blue for Long Break
+      default:
+        return "rgba(34, 197, 94, 1)"; // Default to Green
+    }
+  };
+
+  const strokeColor = getColor();
 
   return (
-    // TODO: if current task is completed, change circle stroke color to gray
-    <div className="relative flex flex-col items-center">
+    <div className="relative flex flex-col items-center p-4">
       <svg height={radius * 2} width={radius * 2} className="relative">
         {/* Background Circle */}
         <circle
-          stroke="rgba(239,68,68,1)"
+          stroke="rgba(229, 231, 235, 1)" // Light gray for background
           fill="transparent"
           strokeWidth={stroke}
           r={normalizedRadius}
@@ -33,7 +59,7 @@ const CircularProgressBar: React.FC<CircularProgressBarProps> = ({
         />
         {/* Foreground Circle for Timer Progress */}
         <circle
-          stroke="rgba(34, 197, 94, 1)"
+          stroke={strokeColor}
           fill="transparent"
           strokeWidth={stroke}
           strokeDasharray={`${circumference} ${circumference}`}
@@ -48,7 +74,7 @@ const CircularProgressBar: React.FC<CircularProgressBarProps> = ({
         {/* Text in the Center for Formatted Time */}
         <text
           x="50%"
-          y="50%" /* Adjust the Y position slightly up to make room for the caption */
+          y="50%"
           textAnchor="middle"
           dy=".3em"
           fontSize="48px"
@@ -57,10 +83,43 @@ const CircularProgressBar: React.FC<CircularProgressBarProps> = ({
         >
           {formattedTime}
         </text>
-        {/* Render PomodorosRating above formattedTime */}
-        {/* <foreignObject x="0" y="65%" width="100%" height="30">
-          <div className="flex justify-center items-center">{children}</div>
-        </foreignObject> */}
+        {/* Indicator for Completed Pomodoros */}
+        {mode === "pomodoro" &&
+          secondsElapsed >= pomodoro.durationInSeconds && (
+            <text
+              x="50%"
+              y="30%"
+              textAnchor="middle"
+              dy="1.5em"
+              fontSize="24px"
+              fontWeight="bold"
+              fill="gray"
+            >
+              Completed
+            </text>
+          )}
+        {/* Pomodoros Completed */}
+        <text
+          x="50%"
+          y="60%"
+          textAnchor="middle"
+          fontSize="18px"
+          fontWeight="bold"
+          fill="green"
+        >
+          Pomodoros: {pomodoro.pomodorosCompleted}
+        </text>
+        {/* Breaks Taken */}
+        <text
+          x="50%"
+          y="65%"
+          textAnchor="middle"
+          fontSize="18px"
+          fontWeight="bold"
+          fill="blue"
+        >
+          Breaks: {pomodoro.break.breakCompleted}
+        </text>
       </svg>
     </div>
   );

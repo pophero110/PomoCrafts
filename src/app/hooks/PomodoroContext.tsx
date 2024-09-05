@@ -5,6 +5,7 @@ export interface Break {
   shortBreakDurationInSeconds: number;
   longBreakDurationInSeconds: number;
   longBreakInterval: number;
+  breakCompleted: number;
 }
 
 export interface Pomodoro {
@@ -27,6 +28,7 @@ const initialPomodoro: Pomodoro = {
     shortBreakDurationInSeconds: 300,
     longBreakDurationInSeconds: 900,
     longBreakInterval: 4,
+    breakCompleted: 0,
   },
 };
 
