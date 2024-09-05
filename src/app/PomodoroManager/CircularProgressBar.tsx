@@ -3,14 +3,17 @@ import { Pomodoro } from "../hooks/PomodoroContext";
 
 interface CircularProgressBarProps {
   pomodoro: Pomodoro;
-  mode: "pomodoro" | "shortBreak" | "longBreak";
+  modeColor:
+    | "rgba(34, 197, 94, 1)"
+    | "rgba(249, 115, 22, 1)"
+    | "rgba(59, 130, 246, 1)";
   secondsElapsed: number;
   formattedTime: string; // Pass formatted time as a prop to display in the center
 }
 
 const CircularProgressBar: React.FC<CircularProgressBarProps> = ({
   pomodoro,
-  mode,
+  modeColor,
   secondsElapsed,
   formattedTime,
 }) => {
@@ -22,28 +25,12 @@ const CircularProgressBar: React.FC<CircularProgressBarProps> = ({
   // Calculate progress
   const progress =
     (secondsElapsed /
-      (mode === "pomodoro"
+      (pomodoro.mode === "pomodoro"
         ? pomodoro.durationInSeconds
-        : mode === "shortBreak"
+        : pomodoro.mode === "shortBreak"
         ? pomodoro.break.shortBreakDurationInSeconds
         : pomodoro.break.longBreakDurationInSeconds)) *
     circumference;
-
-  // Define colors based on mode
-  const getColor = () => {
-    switch (mode) {
-      case "pomodoro":
-        return "rgba(34, 197, 94, 1)"; // Green for Pomodoro
-      case "shortBreak":
-        return "rgba(249, 115, 22, 1)"; // Orange for Short Break
-      case "longBreak":
-        return "rgba(59, 130, 246, 1)"; // Blue for Long Break
-      default:
-        return "rgba(34, 197, 94, 1)"; // Default to Green
-    }
-  };
-
-  const strokeColor = getColor();
 
   return (
     <div className="relative flex flex-col items-center p-4">
@@ -59,7 +46,7 @@ const CircularProgressBar: React.FC<CircularProgressBarProps> = ({
         />
         {/* Foreground Circle for Timer Progress */}
         <circle
-          stroke={strokeColor}
+          stroke={modeColor}
           fill="transparent"
           strokeWidth={stroke}
           strokeDasharray={`${circumference} ${circumference}`}
@@ -84,20 +71,17 @@ const CircularProgressBar: React.FC<CircularProgressBarProps> = ({
           {formattedTime}
         </text>
         {/* Indicator for Completed Pomodoros */}
-        {mode === "pomodoro" &&
-          secondsElapsed >= pomodoro.durationInSeconds && (
-            <text
-              x="50%"
-              y="30%"
-              textAnchor="middle"
-              dy="1.5em"
-              fontSize="24px"
-              fontWeight="bold"
-              fill="gray"
-            >
-              Completed
-            </text>
-          )}
+        <text
+          x="50%"
+          y="30%"
+          textAnchor="middle"
+          dy="1.5em"
+          fontSize="24px"
+          fontWeight="bold"
+          fill="gray"
+        >
+          {pomodoro.mode.toUpperCase()}
+        </text>
         {/* Pomodoros Completed */}
         <text
           x="50%"

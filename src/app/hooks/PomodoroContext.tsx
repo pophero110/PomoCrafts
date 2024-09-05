@@ -12,6 +12,7 @@ export interface Pomodoro {
   durationInSeconds: number;
   pomodorosCompleted: number;
   break: Break;
+  mode: "pomodoro" | "shortBreak" | "longBreak";
 }
 
 // Context State Interface
@@ -22,11 +23,12 @@ interface PomodoroContextState {
 
 // Initial State
 const initialPomodoro: Pomodoro = {
-  durationInSeconds: 1500,
+  durationInSeconds: 3,
   pomodorosCompleted: 0,
+  mode: "pomodoro",
   break: {
-    shortBreakDurationInSeconds: 300,
-    longBreakDurationInSeconds: 900,
+    shortBreakDurationInSeconds: 3,
+    longBreakDurationInSeconds: 3,
     longBreakInterval: 4,
     breakCompleted: 0,
   },

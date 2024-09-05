@@ -21,52 +21,70 @@ const PomodorosManager: React.FC<PomodorosManagerProps> = ({
 }) => {
   const { pomodoro, setPomodoro } = usePomodoro();
   const { updateTask, updateSubtask } = useTasks();
-  const [mode, setMode] = useState<"pomodoro" | "shortBreak" | "longBreak">(
-    "pomodoro"
-  );
-  const [pomodoroSecondsElapsed, setPomodoroSecondsElapsed] = useState(0);
-  const [isPomodoroRunning, setIsPomodoroRunning] = useState(false);
 
-  const handleCompletePomodoro = () => {
-    setIsPomodoroRunning(false);
-    if (selectedSubtask) {
-      const updatedSubtask = {
-        ...selectedSubtask,
-        pomodorosCompleted: selectedSubtask.pomodorosCompleted + 1,
-      };
-      updateSubtask(updatedSubtask);
-      setSelectedSubtask(updatedSubtask);
-    } else if (selectedTask) {
-      const updatedTask = {
-        ...selectedTask,
-        pomodorosCompleted: selectedTask.pomodorosCompleted + 1,
-      };
-      updateTask(updatedTask);
-      setSelectedTask(updatedTask);
-    } else {
-      console.log("No selected task", { selectedTask, selectedSubtask });
-    }
-    const isLongBreak =
-      pomodoro.pomodorosCompleted % pomodoro.break.longBreakInterval === 0;
-    setMode(isLongBreak ? "longBreak" : "shortBreak");
+  const [secondsElapsed, setSecondsElapsed] = useState(0);
+  const [isTimerRunning, setIsTimerRunning] = useState(false);
+
+  const handleCompleteBreak = () => {
     setPomodoro({
       ...pomodoro,
-      pomodorosCompleted: pomodoro.pomodorosCompleted + 1,
+      mode: "pomodoro",
+      break: {
+        ...pomodoro.break,
+        breakCompleted: pomodoro.break.breakCompleted + 1,
+      },
     });
+  };
+  const handleCompletePomodoro = () => {
+    setIsTimerRunning(false);
+    if (pomodoro.mode === "pomodoro") {
+      if (selectedSubtask) {
+        const updatedSubtask = {
+          ...selectedSubtask,
+          pomodorosCompleted: selectedSubtask.pomodorosCompleted + 1,
+        };
+        updateSubtask(updatedSubtask);
+        setSelectedSubtask(updatedSubtask);
+      } else if (selectedTask) {
+        const updatedTask = {
+          ...selectedTask,
+          pomodorosCompleted: selectedTask.pomodorosCompleted + 1,
+        };
+        updateTask(updatedTask);
+        setSelectedTask(updatedTask);
+      } else {
+        console.log("No selected task", { selectedTask, selectedSubtask });
+      }
+      const isLongBreak =
+        pomodoro.pomodorosCompleted !== 0 &&
+        (pomodoro.pomodorosCompleted + 1) % pomodoro.break.longBreakInterval ===
+          0;
+      setPomodoro({
+        ...pomodoro,
+        mode: isLongBreak ? "longBreak" : "shortBreak",
+        pomodorosCompleted: pomodoro.pomodorosCompleted + 1,
+      });
+    } else if (pomodoro.mode === "shortBreak") {
+      handleCompleteBreak();
+    } else if (pomodoro.mode === "longBreak") {
+      handleCompleteBreak();
+    } else {
+      console.error("Missing mode");
+    }
   };
 
   const handleStartPomodoro = () => {
-    setIsPomodoroRunning(true);
+    setIsTimerRunning(true);
   };
   const handleInterruptPomodoro = () => {
-    setIsPomodoroRunning(false);
+    setIsTimerRunning(false);
   };
   const handleCancelPomodoro = () => {
     if (
       window.confirm("Are you sure you want to cancel the current Pomodoro?")
     ) {
-      setIsPomodoroRunning(false);
-      setPomodoroSecondsElapsed(0);
+      setIsTimerRunning(false);
+      setSecondsElapsed(0);
     }
   };
 
@@ -94,10 +112,9 @@ const PomodorosManager: React.FC<PomodorosManagerProps> = ({
         handleStartPomodoro={handleStartPomodoro}
         handleInterruptPomodoro={handleInterruptPomodoro}
         handleCancelPomodoro={handleCancelPomodoro}
-        pomodoroSecondsElapsed={pomodoroSecondsElapsed}
-        setPomodoroSecondsElapsed={setPomodoroSecondsElapsed}
-        isTimerRunning={isPomodoroRunning}
-        mode={mode}
+        secondsElapsed={secondsElapsed}
+        setSecondsElapsed={setSecondsElapsed}
+        isTimerRunning={isTimerRunning}
       />
     </div>
   );
