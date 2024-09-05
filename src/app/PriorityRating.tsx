@@ -1,7 +1,6 @@
 import React from "react";
 import { FaFire, FaCalendarAlt, FaStar } from "react-icons/fa";
-
-export type Priority = "high" | "medium" | "low";
+import { Priority } from "./hooks/TasksContext";
 
 interface PriorityRatingProps {
   className?: string;

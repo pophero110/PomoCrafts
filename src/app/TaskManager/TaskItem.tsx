@@ -7,7 +7,7 @@ import {
   FaTrash,
   FaPen,
   FaCheck,
-  FaListUl,
+  FaSave,
 } from "react-icons/fa";
 import PomodorosRating from "../PomodorosRating";
 import { Task } from "../hooks/TasksContext";
@@ -62,6 +62,13 @@ const TaskItem: React.FC<TaskItemProps> = ({
     setTimeout(() => taskNameInputRef.current?.focus(), 0);
   };
 
+  const handleCompleteTask = () => {
+    handleUpdateTask({
+      ...task,
+      pomodorosCompleted: task.pomodorosRequired,
+    });
+  };
+
   const totalRemainingPomodoros = task.subtasks.reduce(
     (total, subtask) =>
       total + (subtask.pomodorosRequired - subtask.pomodorosCompleted),
@@ -100,7 +107,7 @@ const TaskItem: React.FC<TaskItemProps> = ({
             <input
               ref={taskNameInputRef}
               id={`task-input-${task.id}`}
-              className="border-b-2 text-lg font-medium max-w-16 border-gray-200 bg-transparent focus:outline-none focus:border-gray-500"
+              className="border-b-2 text-lg font-medium max-w-24 border-gray-200 bg-transparent focus:outline-none focus:border-gray-500"
               value={editingTaskState.title}
               onChange={handleInputChange}
               onKeyDown={handleInputKeyDown}
@@ -140,27 +147,35 @@ const TaskItem: React.FC<TaskItemProps> = ({
         )}
         <div className="flex items-center space-x-4">
           {editingTaskState ? (
-            <FaCheck
+            <FaSave
               onClick={handleEditingTaskComplete}
-              className="text-green-500 cursor-pointer hover:text-green-600 w-6 h-6"
-            ></FaCheck>
-          ) : (
-            <FaPen
-              onClick={handleEditingTask}
               className="text-blue-500 cursor-pointer hover:text-blue-600 w-6 h-6"
-            ></FaPen>
-          )}
+            ></FaSave>
+          ) : (
+            <>
+              <FaPen
+                onClick={handleEditingTask}
+                className="text-blue-500 cursor-pointer hover:text-blue-600 w-6 h-6"
+              ></FaPen>
 
-          {!hasSubtask && (
-            <FaPlay
-              className="text-blue-500 hover:text-blue-600 w-6 h-6 cursor-pointer"
-              onClick={startTimer}
-            />
+              {!hasSubtask && (
+                <>
+                  <FaCheck
+                    onClick={handleCompleteTask}
+                    className="text-green-500 cursor-pointer hover:text-green-600 w-6 h-6"
+                  ></FaCheck>
+                  <FaPlay
+                    className="text-blue-500 hover:text-blue-600 w-6 h-6 cursor-pointer"
+                    onClick={startTimer}
+                  />
+                </>
+              )}
+              <FaTrash
+                className="text-gray-500 hover:text-gray-600 w-6 h-6 cursor-pointer"
+                onClick={() => handleDeleteTask(task.id)}
+              />
+            </>
           )}
-          <FaTrash
-            className="text-gray-500 hover:text-gray-600 w-6 h-6 cursor-pointer"
-            onClick={() => handleDeleteTask(task.id)}
-          />
         </div>
       </div>
       {isSelected && children}

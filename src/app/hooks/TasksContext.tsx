@@ -1,5 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
-import { Priority } from "../PriorityRating";
+import React, { createContext, useContext, useState } from "react";
 
 export interface Task {
   id: number;
@@ -20,6 +19,13 @@ export interface Subtask {
   pomodorosCompleted: number;
   note: string;
 }
+
+export type Priority = "high" | "medium" | "low";
+export const PriorityLevels: Record<Priority, number> = {
+  high: 1,
+  medium: 2,
+  low: 3,
+};
 
 interface TasksContextType {
   tasks: Task[];

@@ -2,9 +2,14 @@ import React, { useState } from "react";
 import TaskInput from "./TaskInput";
 import TaskItem from "./TaskItem";
 import SubtaskItem from "./SubtaskItem";
-import { Task, Subtask, useTasks } from "../hooks/TasksContext";
+import {
+  Task,
+  Subtask,
+  useTasks,
+  Priority,
+  PriorityLevels,
+} from "../hooks/TasksContext";
 import SubtaskInput from "./SubtaskInput";
-import { Priority } from "../PriorityRating";
 
 interface TaskManagerProps {
   selectedTask: Task | null;
@@ -183,36 +188,40 @@ const TaskManager: React.FC<TaskManagerProps> = ({
         addTask={handleCreateTask}
       />
       <ul className="space-y-4">
-        {tasks.map((task) => (
-          <TaskItem
-            key={task.id}
-            task={task}
-            selectedTask={selectedTask}
-            handleUpdateTask={handleUpdateTask}
-            handleSelectTask={handleSelectTask}
-            handleDeleteTask={handleDeleteTask}
-            startTimer={startTimer}
-          >
-            <ul className="list-disc space-y-2">
-              {task.subtasks.map((subtask: Subtask) => (
-                <SubtaskItem
-                  key={subtask.id}
-                  subtask={subtask}
-                  selectedSubtask={selectedSubtask}
-                  handleUpdateSubtask={handleUpdateSubtask}
-                  handleSelectSubtask={handleSelectSubtask}
-                  handleDeleteSubtask={handleDeleteSubtask}
-                  startTimer={startTimer}
+        {tasks
+          .sort(
+            (a, b) => PriorityLevels[a.priority] - PriorityLevels[b.priority]
+          )
+          .map((task) => (
+            <TaskItem
+              key={task.id}
+              task={task}
+              selectedTask={selectedTask}
+              handleUpdateTask={handleUpdateTask}
+              handleSelectTask={handleSelectTask}
+              handleDeleteTask={handleDeleteTask}
+              startTimer={startTimer}
+            >
+              <ul className="list-disc space-y-2">
+                {task.subtasks.map((subtask: Subtask) => (
+                  <SubtaskItem
+                    key={subtask.id}
+                    subtask={subtask}
+                    selectedSubtask={selectedSubtask}
+                    handleUpdateSubtask={handleUpdateSubtask}
+                    handleSelectSubtask={handleSelectSubtask}
+                    handleDeleteSubtask={handleDeleteSubtask}
+                    startTimer={startTimer}
+                  />
+                ))}
+                <SubtaskInput
+                  subtaskState={subtaskState}
+                  setSubtaskState={setSubtaskState}
+                  handleCreateSubtask={handleCreateSubtask}
                 />
-              ))}
-              <SubtaskInput
-                subtaskState={subtaskState}
-                setSubtaskState={setSubtaskState}
-                handleCreateSubtask={handleCreateSubtask}
-              />
-            </ul>
-          </TaskItem>
-        ))}
+              </ul>
+            </TaskItem>
+          ))}
       </ul>
     </div>
   );

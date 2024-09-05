@@ -1,5 +1,5 @@
 import React, { useRef, useState } from "react";
-import { FaCheck, FaPen, FaPlay, FaTrash } from "react-icons/fa";
+import { FaCheck, FaPen, FaPlay, FaTrash, FaSave } from "react-icons/fa";
 import PomodorosRating from "../PomodorosRating";
 import { Subtask } from "../hooks/TasksContext";
 
@@ -47,6 +47,13 @@ const SubtaskItem: React.FC<SubtaskItemProps> = ({
       handleUpdateSubtask({ ...editingSubtask });
       setEditingSubtask(null);
     }
+  };
+
+  const handleCompleteSubtask = () => {
+    handleUpdateSubtask({
+      ...subtask,
+      pomodorosCompleted: subtask.pomodorosRequired,
+    });
   };
 
   return (
@@ -101,24 +108,30 @@ const SubtaskItem: React.FC<SubtaskItemProps> = ({
       <div className="flex items-center space-x-4">
         <div className="flex space-x-4">
           {editingSubtask ? (
-            <FaCheck
+            <FaSave
               onClick={handleEditingTaskComplete}
-              className="text-green-500 cursor-pointer hover:text-green-600 w-6 h-6"
-            ></FaCheck>
-          ) : (
-            <FaPen
-              onClick={handleEditingSubtask}
               className="text-blue-500 cursor-pointer hover:text-blue-600 w-6 h-6"
-            ></FaPen>
+            ></FaSave>
+          ) : (
+            <>
+              <FaPen
+                onClick={handleEditingSubtask}
+                className="text-blue-500 cursor-pointer hover:text-blue-600 w-6 h-6"
+              ></FaPen>
+              <FaCheck
+                onClick={handleCompleteSubtask}
+                className="text-green-500 cursor-pointer hover:text-green-600 w-6 h-6"
+              ></FaCheck>
+              <FaPlay
+                className="text-blue-500 hover:text-blue-600 w-6 h-6 cursor-pointer"
+                onClick={startTimer}
+              />
+              <FaTrash
+                className="text-gray-500 hover:text-gray-600 w-6 h-6 cursor-pointer"
+                onClick={(event) => handleDeleteSubtask(subtask.id)}
+              />
+            </>
           )}
-          <FaPlay
-            className="text-blue-500 hover:text-blue-600 w-6 h-6 cursor-pointer"
-            onClick={startTimer}
-          />
-          <FaTrash
-            className="text-gray-500 hover:text-gray-600 w-6 h-6 cursor-pointer"
-            onClick={(event) => handleDeleteSubtask(subtask.id)}
-          />
         </div>
       </div>
     </li>
